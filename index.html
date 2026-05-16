@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>West Hollywood Care Team — Program Dashboard FY 2025–26</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, Helvetica, sans-serif; background: #f4f6f9; color: #1a1a2e; font-size: 16px; }
+
+  /* ── HEADER ── */
+  .header { background: #003087; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .header-title { color: #fff; font-size: 18px; font-weight: 700; }
+  .header-sub { color: rgba(255,255,255,0.88); font-size: 13px; margin-top: 2px; }
+  .header-right { display:flex; align-items:center; gap:10px; flex-shrink: 0; }
+  .fy-label { font-size:12px; color:rgba(255,255,255,0.8); font-weight:700; }
+  .fy-btn { font-size:12px; font-weight:700; padding:6px 14px; border-radius:20px; border:2px solid rgba(255,255,255,0.55); background:transparent; color:#fff; cursor:pointer; transition:all 0.15s ease; }
+  .fy-btn.active { background:#fff; color:#003087; border-color:#fff; }
+  .header-divider { height:1px; background:#dce3ef; }
+  .fy-note { font-size:13px; font-weight:600; color:#003087; background:#e8eef8; border-left:4px solid #003087; padding:8px 18px; display:none; }
+  .fy-note.visible { display:block; }
+
+  /* ── PERIOD FILTER ── */
+  .page-tab:focus-visible { outline: 3px solid #003087; outline-offset: -2px; }
+
+  /* ── PAGE NAV ── */
+  .page-nav { background: #fff; border-bottom: 1px solid #dce3ef; padding: 0 28px; display: flex; gap: 0; }
+  .page-tab { padding: 12px 20px; font-size: 15px; font-weight: 700; color: #6b7a99; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.15s; }
+  .page-tab:hover { color: #003087; background: #f8faff; }
+  .page-tab.active { color: #003087; border-bottom-color: #003087; }
+
+  /* ── PAGE CONTEXT BANNER ── */
+  .page-context { background: #f0f4ff; border-left: 4px solid #003087; border-radius: 0 6px 6px 0; padding: 10px 16px; margin-bottom: 18px; font-size: 14px; color: #3a4a6b; line-height: 1.6; }
+
+  /* ── LAYOUT ── */
+  .content { padding: 18px 28px 8px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── KPI CARDS ── */
+  .kpi-row { display: grid; gap: 10px; margin-bottom: 14px; }
+  .kpi-4 { grid-template-columns: repeat(4, 1fr); }
+  .kpi-3 { grid-template-columns: repeat(3, 1fr); }
+  .kpi-2 { grid-template-columns: repeat(2, 1fr); }
+  .kpi { background: #fff; border-radius: 8px; padding: 16px 18px; border-top: 3px solid #003087; box-shadow: 0 1px 4px rgba(0,0,135,0.06); }
+  .kpi-label { font-size: 12px; color: #6b7a99; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
+  .kpi-value { font-size: 32px; font-weight: 700; color: #003087; line-height: 1; }
+  .kpi-sub { font-size: 13px; color: #9aa5be; margin-top: 5px; }
+  .kpi-sm .kpi-value { font-size: 26px; }
+
+  /* ── CHART GRID ── */
+  .chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 14px; }
+  .chart-card { background: #fff; border-radius: 8px; padding: 16px 18px; box-shadow: 0 1px 4px rgba(0,0,135,0.06); overflow: hidden; }
+  .chart-card.full { grid-column: span 2; }
+  .chart-title { font-size: 15px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+  .chart-note { font-size: 13px; color: #9aa5be; margin-bottom: 12px; }
+  .chart-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; font-size: 13px; color: #6b7a99; align-items: center; }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-right: 4px; vertical-align: middle; }
+  canvas { display: block; max-width: 100%; }
+
+  /* ── BAR ROWS ── */
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+  .bar-label { font-size: 13px; color: #4a5568; width: 180px; flex-shrink: 0; text-align: right; line-height: 1.3; }
+  .bar-track { flex: 1; background: #eef1f8; border-radius: 4px; height: 22px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; font-size: 13px; color: #fff; font-weight: 700; transition: width 0.35s ease; min-width: 36px; }
+
+  /* ── STAT TABLE ── */
+  .stat-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .stat-table td { padding: 8px 8px; border-bottom: 1px solid #eef1f8; color: #1a1a2e; line-height: 1.4; }
+  .stat-table td:first-child { color: #4a5568; }
+  .stat-table td:last-child { text-align: right; font-weight: 700; color: #003087; white-space: nowrap; }
+  .stat-table tr:last-child td { border-bottom: none; }
+  .stat-table .row-indent td:first-child { color: #9aa5be; padding-left: 20px; font-size: 13px; }
+  .stat-table .row-indent td:last-child { color: #6b7a99; font-size: 13px; }
+  .stat-table .row-group td { background: #f8faff; font-weight: 700; font-size: 13px; color: #003087; padding-top: 10px; border-bottom: none; }
+
+  /* ── SECTION NOTE ── */
+  .section-note { font-size: 13px; color: #9aa5be; font-style: italic; margin: -12px 0 14px; }
+
+  /* ── HALF GRID ── */
+  .half-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 14px; }
+
+  /* ── FOOTER ── */
+  .dash-footer { margin-top: 12px; padding: 14px 0 4px; border-top: 1px solid #dce3ef; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #9aa5be; }
+
+  @media (max-width: 900px) {
+    .kpi-4, .kpi-3 { grid-template-columns: repeat(2,1fr); }
+    .chart-grid, .half-grid { grid-template-columns: 1fr; }
+    .chart-card.full { grid-column: span 1; }
+    .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .header-right { text-align: left; }
+    .bar-label { width: 130px; }
+  }
+  @media (max-width: 520px) {
+    .kpi-4, .kpi-3 { grid-template-columns: 1fr; }
+    .kpi-value { font-size: 26px; }
+    .page-nav { overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; padding: 0 12px; }
+    .page-tab { padding: 10px 14px; font-size: 13px; display: inline-block; }
+    .content { padding: 12px; }
+    .bar-label { width: 100px; font-size: 11px; }
+    .bar-fill { font-size: 11px; }
+    .header-fy { font-size: 13px; }
+  }
+
+/* ── FLOW CARDS ── */
+.flow-cards-wrap { margin-bottom:18px; }
+.flow-cards-heading { font-size:12px; font-weight:700; color:#6b7a99; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+.flow-cards-heading::after { content:''; flex:1; height:1px; background:#dce3ef; }
+.flow-cards { display:flex; align-items:stretch; gap:12px; }
+.flow-card { flex:1; background:#fff; border-radius:8px; padding:18px 20px; border-top:3px solid #003087; box-shadow:0 1px 4px rgba(0,0,135,0.06); }
+.flow-card-label { font-size:12px; color:#6b7a99; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:6px; }
+.flow-card-value { font-size:36px; font-weight:700; color:#003087; line-height:1; }
+.flow-card-sub { font-size:13px; color:#5a6a88; margin-top:6px; line-height:1.5; }
+.flow-cards-note { font-size:12px; color:#9aa5be; font-style:italic; margin-top:8px; }
+@media(max-width:700px){
+  .flow-cards{flex-direction:column;}
+  .flow-card-value{font-size:28px;}
+}
+
+/* ── TOOLTIP ── */
+.chart-tooltip { position:fixed; background:#1a1a2e; color:#fff; font-family:Arial,Helvetica,sans-serif; font-size:12px; padding:7px 11px; border-radius:6px; pointer-events:none; opacity:0; transition:opacity 0.15s; z-index:9999; white-space:nowrap; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+.chart-tooltip.visible { opacity:1; }
+
+.fy-badge { display:inline-block; background:#003087; color:#fff; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; margin-left:8px; vertical-align:middle; }
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="header-title">West Hollywood Care Team</div>
+    <div class="header-sub">FY 2025–2026 Program Performance Dashboard</div>
+  </div>
+  <div class="header-right">
+    <span class="fy-label">Fiscal Year</span>
+    <button id="btn-fy25" class="fy-btn" onclick="switchFY('25')">FY 2025</button>
+    <button id="btn-fy26" class="fy-btn active" onclick="switchFY('26')">FY 2026</button>
+  </div>
+</div>
+<div class="header-divider"></div>
+<div class="fy-note" id="fy-context-note"></div>
+
+<!-- PERIOD FILTER -->
+
+<!-- PAGE NAV -->
+<div class="page-nav">
+  <div class="page-tab active" role="tab" aria-selected="true" aria-controls="page-overview" tabindex="0" onclick="showPage('overview',this)" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('overview',this)">Overview</div>
+  <div class="page-tab" role="tab" aria-selected="false" aria-controls="page-demographics" tabindex="0" onclick="showPage('demographics',this)" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('demographics',this)">Demographics</div>
+  <div class="page-tab" role="tab" aria-selected="false" aria-controls="page-calls" tabindex="0" onclick="showPage('calls',this)" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('calls',this)">Call Analysis</div>
+  <div class="page-tab" role="tab" aria-selected="false" aria-controls="page-outcomes" tabindex="0" onclick="showPage('outcomes',this)" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('outcomes',this)">Outcomes</div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: OVERVIEW
+═══════════════════════════════════════════ -->
+<div class="content">
+<div class="page active" id="page-overview">
+
+  <div class="page-context">
+    Call volume reached a new high in March 2026, with self-referrals and HCL-sourced calls driving significant growth. Housing and basic needs remain the top presenting issues.
+  </div>
+
+  <div class="flow-cards-wrap"><div class="flow-cards-heading" id="flow-cards-heading">Care Team activity</div><div id="flow-cards" class="flow-cards"></div><p class="flow-cards-note" id="transport-note">FY 2025 transport counts reflect logged transports to a remote resource or location. Transport counts are shown separately from follow-up contacts.</p></div>
+  <div class="kpi-row kpi-4" id="kpi-overview-bot"></div>
+
+  <div class="chart-card full" style="margin-bottom:18px;">
+    <div class="chart-title">Monthly activity</div>
+    <div class="chart-note">Each bar shows the number of calls responded to (dark blue) and follow-up check-ins completed (light blue) for that month.</div>
+    <div class="chart-legend">
+      <span><span class="legend-swatch" style="background:#003087;"></span>Calls responded to</span>
+      <span><span class="legend-swatch" style="background:#5B9BD5;"></span>Follow-up check-ins</span>
+    </div>
+    <canvas id="c-trend" height="200"></canvas>
+  </div>
+
+  <div class="half-grid">
+    <div class="chart-card">
+      <div class="chart-title">Presenting issues</div>
+      <div class="chart-note">Contacts may include multiple issues.</div>
+      <div id="bars-presenting"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Referral sources</div>
+      <div id="bars-referral"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: DEMOGRAPHICS
+═══════════════════════════════════════════ -->
+<div class="page" id="page-demographics">
+
+  <div class="page-context">
+    Most people served were adults ages 25–64, and a majority were experiencing homelessness.
+  </div>
+
+  
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-title" id="age-title">Age groups</div>
+      <div class="chart-note" id="age-note">Total by age group across the selected fiscal year</div>
+      <canvas id="c-age" height="220"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title" id="race-title">Race / ethnicity</div>
+      <div class="chart-note" id="race-note">Total by race/ethnicity across the selected fiscal year</div>
+      <canvas id="c-race" height="220"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title" id="gender-title">Gender</div>
+      <div class="chart-note" id="gender-note">Share by gender identity across the selected fiscal year</div>
+      <canvas id="c-gender" height="220"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title" id="housing-title">Housing status</div>
+      <div class="chart-note" id="housing-note">Share by housing status across the selected fiscal year</div>
+      <canvas id="c-housing-donut" height="240"></canvas>
+    </div>
+    <div class="chart-card full">
+      <div class="chart-title">Housing status of contacts over time</div>
+      <div class="chart-note">How many contacts each month were unhoused vs. housed</div>
+      <div class="chart-legend">
+        <span><span class="legend-swatch" style="background:#003087;"></span>Unhoused</span>
+        <span><span class="legend-swatch" style="background:#5B9BD5;"></span>Housed</span>
+      </div>
+      <canvas id="c-housing" height="180"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: CALL ANALYSIS
+═══════════════════════════════════════════ -->
+<div class="page" id="page-calls">
+
+  <div class="page-context">
+    Activity peaks midweek, particularly in public spaces and afternoon hours.
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-title">Calls by day</div>
+      <div class="chart-note">Which days saw the most calls. The darkest bar is the busiest day.</div>
+      <canvas id="c-dow" height="220"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Calls by time of day</div>
+      <div class="chart-note">Which 2-hour windows had the most calls. Darkest bars are the busiest periods.</div>
+      <canvas id="c-tod" height="220"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Service locations</div>
+      <div class="chart-note">Breakdown of the locations where the Care Team responded</div>
+      <div id="bars-loc" style="margin-top:6px;"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Response and call time</div>
+      <div class="chart-note">Average response and call-time measures for the selected fiscal year</div>
+      <table class="stat-table" id="tbl-calltime"></table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: OUTCOMES
+═══════════════════════════════════════════ -->
+<div class="page" id="page-outcomes">
+
+  <div class="page-context">
+    Most engagements resulted in service connections, with relatively few cases requiring first-responder support.
+  </div>
+
+  <div class="flow-cards-wrap"><div class="flow-cards-heading" id="outcomes-cards-heading">Outcomes activity</div><div id="kpi-outcomes-top" class="flow-cards"></div></div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-title">On-scene services</div>
+      <div class="chart-note">Count of resources or referrals provided during service calls</div>
+      <div id="bars-onscene"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Follow-up services</div>
+      <div class="chart-note">Count of resources or referrals given during follow-up check-ins</div>
+      <div id="bars-followup"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Repeat contacts (same month)</div>
+      <div class="chart-note">Contacts logged more than once within the same month. Does not capture repeat encounters where the individual declined to provide identifying information.</div>
+      <canvas id="c-repeat" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">First responder involvement</div>
+      <div class="chart-note">Number of times the Care Team requested additional first-responder support</div>
+      <table class="stat-table" id="tbl-fr"></table>
+    </div>
+  </div>
+
+</div>
+
+<div class="dash-footer" id="dash-footer"><div></div></div>
+
+</div><!-- /content -->
+
+
+<script>
+// ════════════
+// ══════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════
+const MONTHS = ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+let MONTH_LABELS = ['Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26'];
+
+// Quarter index ranges
+let QIDX = { ytd:[0,1,2,3,4,5,6,7,8], q1:[0,1,2], q2:[3,4,5], q3:[6,7,8] };
+let QLABELS = { ytd:'Jul 2025 – Mar 2026', q1:'Q1: Jul – Sep 2025', q2:'Q2: Oct – Dec 2025', q3:'Q3: Jan – Mar 2026' };
+
+// All monthly series [Jul,Aug,Sep,Oct,Nov,Dec,Jan,Feb]
+const D = {
+  engagements:       [140,86,73,115,170,200,198,266,325],
+  followups:         [234,180,205,211,170,132,135,171,192],
+  unique:            [113,83,60,94,132,143,131,171,168],
+
+  // True unduplicated FYTD counts from Sycamores — only available for full YTD, not by quarter
+  FYTD_unique:       837,
+  FYTD_unhoused:     668,
+  FYTD_housed:       119,
+  FYTD_dts:          50,
+  repeats:           [14,5,7,15,14,20,19,26,28],
+  transports:        [16,20,16,15,25,9,17,23,19],
+
+  ageU17:            [2,2,0,1,0,1,0,3,0],
+  age1834:           [21,15,16,19,28,25,29,43,30],
+  age3549:           [32,22,18,29,34,43,38,36,49],
+  age5064:           [26,16,13,21,30,30,25,36,36],
+  age6579:           [7,12,6,12,13,12,20,14,22],
+  age80p:            [3,0,0,1,0,0,2,3,1],
+  ageDTS:            [22,16,7,9,27,32,17,36,30],
+
+  genderMale:        [82,61,43,60,102,98,98,137,126],
+  genderFemale:      [30,22,17,31,29,45,31,32,39],
+  genderDTS:         [1,0,0,1,1,0,2,2,3],
+
+  raceAsian:         [1,3,1,1,1,5,1,5,5],
+  raceBlack:         [36,18,15,13,29,36,28,54,46],
+  raceHispanic:      [16,18,17,25,25,23,18,25,29],
+  raceWhite:         [47,40,21,44,59,54,60,64,63],
+  raceOther:         [4,1,2,3,7,13,14,10,13],
+  raceDTS:           [9,3,4,6,11,12,10,13,12],
+
+  housingHoused:     [10,8,7,11,13,17,29,25,28],
+  housingUnhoused:   [95,69,49,77,110,114,89,133,131],
+  housingDTS:        [8,6,4,4,9,12,13,13,9],
+
+  refAmbassadors:    [33,27,14,14,53,45,30,16,10],
+  refSycamores:      [47,19,21,23,25,32,14,25,28],
+  refSelf:           [8,8,9,11,24,40,42,59,108],
+  refHCL:            [11,6,2,5,12,25,40,97,88],
+  refLawEnf:         [18,12,9,13,17,21,37,22,19],
+  refOther:          [18,10,14,27,14,14,13,15,24],
+  refWeHoAgency:     [0,1,0,11,10,12,7,10,17],
+  refWeHoStaff:      [3,2,1,8,7,6,5,8,15],
+  refFriendFam:      [0,0,0,0,5,2,4,10,7],
+  refFireEMS:        [2,0,3,1,1,2,4,2,5],
+
+  presBasicNeeds:    [83,59,38,73,100,95,99,143,170],
+  presHousing:       [87,37,35,64,98,100,100,138,182],
+  presWelfare:       [26,19,22,24,32,46,42,61,72],
+  presHealth:        [11,7,8,7,21,16,21,24,31],
+  presSubUse:        [9,4,9,7,10,12,8,21,23],
+  presCrisis:        [5,4,3,4,7,10,10,16,23],
+
+  locPublic:         [104,61,52,85,113,135,108,173,154],
+  locTelephone:      [6,3,7,11,33,41,33,64,131],
+  locSheriff:        [10,3,3,10,12,7,22,5,10],
+  locPrivRes:        [10,7,6,5,3,10,18,13,18],
+  locBusiness:       [8,11,5,3,3,1,6,5,4],
+  locOther:          [2,6,1,7,6,6,11,6,8],
+
+  dowSun: [19,13,11,6,31,27,18,25,28],
+  dowMon: [25,13,7,6,9,25,23,32,28],
+  dowTue: [21,13,14,15,16,21,13,21,39],
+  dowWed: [16,10,10,27,26,47,31,63,66],
+  dowThu: [25,13,12,30,32,33,36,57,60],
+  dowFri: [24,13,13,25,31,24,48,39,75],
+  dowSat: [11,17,7,12,25,23,29,30,29],
+
+  tod: [[13,10,4,5,8,13,12,22,15],[6,3,2,6,9,3,17,17,14],[5,3,1,3,1,1,8,8,5],
+        [3,8,3,1,14,16,9,19,22],[10,7,6,9,24,35,19,27,55],[6,3,3,5,19,18,22,37,39],
+        [7,5,2,12,14,22,14,25,49],[32,14,13,22,22,32,29,25,44],[17,5,13,27,16,18,22,23,13],
+        [12,14,9,11,9,14,19,22,26],[10,11,9,11,16,11,11,10,15],[20,9,9,9,18,17,16,31,28]],
+
+  onSceneSupplies:   [74,48,34,54,65,66,70,76,80],
+  onSceneShelter:    [62,19,20,47,47,46,47,66,69],
+  onSceneFood:       [6,5,4,13,26,12,22,30,37],
+  onSceneHealth:     [9,3,6,10,13,19,17,21,13],
+  onSceneTransCoord: [9,8,7,9,12,9,18,20,16],
+  onSceneSUD:        [3,0,7,7,5,6,8,17,14],
+  onSceneMH:         [3,1,1,4,3,3,10,9,5],
+
+  fuShelter:         [63,56,64,87,54,53,25,47,47],
+  fuDeclined:        [69,43,39,48,36,31,35,55,55],
+  fuFood:            [44,41,28,22,33,11,8,19,13],
+  fuHealth:          [34,19,34,30,13,17,16,21,14],
+  fuMH:              [18,14,14,11,13,9,13,14,22],
+  fuSUD:             [13,11,15,8,18,7,5,11,11],
+
+  frLASD:            [2,2,1,0,3,6,2,4,0],
+  frLASDHoused:      [1,0,0,0,0,2,0,2,0],
+  frLASDUnhoused:    [1,2,1,0,3,4,1,1,0],
+  frLASDDTS:         [0,0,0,0,0,0,0,0,0],
+  frLACFD:           [1,1,2,0,0,1,6,3,0],
+  frLACFDHoused:     [1,0,1,0,0,0,0,1,0],
+  frLACFDUnhoused:   [0,1,1,0,0,0,5,1,0],
+  frLACFDDTS:        [0,0,0,0,0,1,1,1,0],
+  frHoldsApplied:    [1,0,0,1,0,1,0,0,1],
+  frHoldsVoided:     [0,0,0,0,0,1,0,0,0],
+
+  onSceneUnique:     [98,71,55,77,102,100,107,125,118],
+  fuUnique:          [131,100,102,116,108,96,85,110,123],
+};
+
+
+// ── FYTD UNDUPLICATED DEMOGRAPHIC DATA (837 unique individuals) ──
+let D_demo = {
+  ageU17:       5,
+  age1834:      178,
+  age3549:      226,
+  age5064:      164,
+  age6579:      65,
+  age80p:       8,
+  ageDTS:       191,
+  genderMale:   616,
+  genderFemale: 211,
+  genderDTS:    10,
+  raceAsian:    18,
+  raceBlack:    216,
+  raceHispanic: 149,
+  raceWhite:    337,
+  raceOther:    52,
+  raceDTS:      65,
+  housingHoused:   119,
+  housingUnhoused: 668,
+  housingDTS:      50,
+};
+let DEMO_TOTAL = 837;
+
+
+// ── FY 2025 DATA (Jul 2024 – Jun 2025) ──
+const D25_months = ["Jul 24", "Aug 24", "Sep 24", "Oct 24", "Nov 24", "Dec 24", "Jan 25", "Feb 25", "Mar 25", "Apr 25", "May 25", "Jun 25"];
+const D25 = {
+  engagements: [171, 178, 132, 150, 120, 149, 86, 73, 94, 115, 143, 114],
+  followups: [134, 194, 165, 192, 178, 189, 190, 174, 176, 181, 251, 188],
+  transports: [5, 3, 4, 4, 2, 7, 8, 6, 4, 6, 9, 8],
+  presBasicNeeds: [74, 92, 88, 95, 88, 90, 50, 54, 63, 84, 99, 68],
+  presHousing: [58, 81, 76, 96, 69, 91, 47, 30, 64, 72, 84, 69],
+  presWelfare: [50, 69, 23, 5, 8, 10, 9, 7, 12, 14, 31, 23],
+  presHealth: [16, 10, 27, 19, 26, 25, 7, 7, 15, 19, 10, 8],
+  presSubUse: [7, 4, 14, 18, 7, 12, 8, 9, 9, 11, 8, 7],
+  presCrisis: [4, 13, 3, 13, 13, 10, 6, 6, 8, 3, 5, 10],
+  refAmbassadors: [6, 4, 13, 14, 29, 16, 20, 10, 24, 15, 27, 26],  // Block by Block (predecessor to Ambassadors)
+  refSycamores: [145, 137, 94, 83, 57, 91, 39, 41, 22, 55, 73, 44],
+  refSelf: [0, 0, 0, 0, 2, 1, 1, 3, 4, 2, 5, 7],
+  refHCL: [2, 12, 13, 20, 12, 16, 6, 4, 15, 13, 7, 7],
+  refLawEnf: [9, 13, 7, 10, 11, 12, 9, 5, 14, 8, 14, 9],
+  refWeHoAgency: [0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+  refWeHoStaff: [1, 4, 1, 2, 6, 3, 7, 3, 4, 5, 4, 7],
+  refFriendFam: [1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 2, 1],
+  refFireEMS: [2, 6, 0, 2, 1, 5, 3, 1, 4, 13, 2, 2],
+  refOther: [5, 0, 3, 19, 0, 5, 1, 5, 7, 3, 8, 11],
+  dowSun: [20, 21, 30, 24, 15, 22, 2, 5, 4, 10, 18, 8],
+  dowMon: [30, 14, 16, 16, 13, 19, 4, 9, 16, 14, 19, 33],
+  dowTue: [34, 29, 17, 26, 18, 29, 20, 12, 19, 19, 15, 20],
+  dowWed: [33, 21, 15, 26, 8, 15, 21, 10, 10, 27, 23, 12],
+  dowThu: [22, 24, 24, 17, 26, 24, 18, 20, 12, 11, 23, 12],
+  dowFri: [18, 29, 20, 18, 21, 23, 16, 9, 19, 15, 18, 13],
+  dowSat: [14, 40, 10, 23, 19, 17, 5, 8, 14, 19, 27, 16],
+  locPublic: [151, 161, 114, 101, 93, 121, 57, 49, 61, 83, 124, 86],
+  locTelephone: [0, 0, 0, 0, 0, 0, 2, 3, 9, 5, 3, 3],
+  locSheriff: [1, 2, 2, 5, 3, 4, 2, 2, 6, 3, 8, 7],
+  locPrivRes: [11, 5, 5, 6, 9, 9, 5, 5, 9, 16, 7, 8],
+  locBusiness: [5, 10, 8, 10, 9, 4, 15, 12, 6, 2, 0, 5],
+  locOther: [2, 0, 1, 28, 5, 8, 3, 1, 1, 6, 1, 2],
+  onSceneUnique: [126, 163, 117, 115, 106, 124, 77, 65, 73, 93, 116, 93],
+  fuUnique: [78, 94, 92, 106, 93, 117, 110, 99, 116, 110, 132, 79],
+  repeats: [5, 6, 5, 5, 5, 11, 0, 2, 7, 2, 12, 25],
+  onSceneSupplies: [86, 120, 83, 69, 67, 60, 38, 42, 44, 55, 80, 54],
+  onSceneShelter: [51, 58, 60, 52, 32, 51, 27, 27, 37, 35, 42, 50],
+  onSceneFood: [18, 23, 9, 8, 12, 5, 4, 11, 19, 23, 17, 13],
+  onSceneHealth: [29, 30, 30, 26, 19, 17, 9, 5, 6, 6, 13, 9],
+  onSceneTransCoord: [7, 5, 9, 4, 7, 15, 7, 3, 5, 7, 14, 14],
+  onSceneSUD: [3, 11, 7, 13, 4, 5, 5, 3, 2, 5, 8, 7],
+  onSceneMH: [21, 28, 11, 18, 11, 14, 6, 5, 8, 5, 7, 5],
+  fuShelter: [13, 25, 71, 85, 89, 98, 39, 44, 45, 49, 69, 49],
+  fuDeclined: [8, 69, 81, 112, 99, 86, 84, 58, 49, 53, 85, 69],
+  fuFood: [5, 12, 15, 30, 24, 10, 20, 26, 17, 28, 28, 18],
+  fuHealth: [8, 18, 40, 47, 39, 27, 15, 10, 16, 10, 25, 25],
+  fuMH: [3, 4, 16, 24, 36, 33, 12, 8, 15, 8, 16, 9],
+  fuSUD: [2, 10, 9, 20, 20, 17, 7, 3, 4, 8, 8, 8],
+  frLASD: [1, 1, 0, 1, 1, 0, 4, 2, 2, 1, 6, 1],
+  frLASDHoused: [0, 0, 0, 1, 0, 0, 1, 1, 2, 0, 0, 0],
+  frLASDUnhoused: [1, 1, 0, 0, 1, 0, 2, 1, 0, 1, 6, 1],
+  frLASDDTS: [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+  frLACFD: [0, 1, 2, 0, 2, 2, 1, 2, 1, 2, 1, 0],
+  frLACFDHoused: [0, 0, 1, 0, 0, 2, 0, 1, 0, 0, 0, 0],
+  frLACFDUnhoused: [0, 1, 1, 0, 2, 0, 1, 1, 1, 2, 1, 0],
+  frLACFDDTS: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  frHoldsApplied: [1, 2, 0, 1, 1, 0, 2, 2, 0, 1, 2, 0],
+  frHoldsVoided: [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+  housingHoused: [14, 10, 8, 6, 12, 16, 12, 11, 18, 22, 17, 9],
+  housingUnhoused: [152, 161, 115, 137, 91, 114, 69, 57, 65, 85, 105, 91],
+  housingDTS: [0, 0, 0, 0, 10, 5, 5, 3, 1, 4, 6, 2],
+  // Additional keys for FY toggle compatibility
+  unique: [166, 171, 124, 143, 113, 135, 86, 71, 84, 111, 128, 102],
+  ageU17: [0, 0, 2, 0, 4, 5, 4, 0, 0, 0, 0, 2],
+  age1834: [36, 23, 27, 34, 17, 36, 18, 21, 22, 21, 36, 22],
+  age3549: [47, 35, 28, 36, 30, 36, 18, 22, 26, 28, 45, 31],
+  age5064: [34, 28, 14, 20, 26, 22, 20, 16, 12, 29, 25, 21],
+  age6579: [7, 5, 7, 7, 8, 7, 9, 3, 6, 6, 3, 8],
+  age80p: [2, 3, 1, 1, 0, 1, 0, 0, 1, 6, 0, 0],
+  ageDTS: [40, 77, 44, 45, 28, 28, 17, 9, 17, 21, 19, 18],
+  genderMale: [127, 136, 95, 107, 82, 104, 64, 52, 64, 81, 105, 76],
+  genderFemale: [38, 35, 28, 35, 31, 30, 22, 18, 20, 29, 22, 26],
+  genderDTS: [1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0],
+  raceAsian: [4, 5, 1, 2, 3, 2, 2, 1, 2, 0, 4, 2],
+  raceBlack: [66, 55, 35, 47, 36, 42, 24, 23, 19, 35, 34, 31],
+  raceHispanic: [34, 36, 22, 21, 17, 23, 15, 9, 19, 10, 24, 16],
+  raceWhite: [49, 64, 52, 63, 44, 56, 37, 34, 35, 49, 50, 47],
+  raceOther: [7, 8, 7, 5, 8, 5, 1, 1, 2, 8, 8, 6],
+  raceDTS: [6, 3, 6, 5, 5, 7, 7, 3, 7, 9, 8, 0],
+  FYTD_unique: 0,
+  FYTD_unhoused: 0,
+  FYTD_housed: 0,
+  FYTD_dts: 0,
+  tod: [[6, 5, 12, 21, 13, 19, 4, 11, 8, 14, 31, 13], [3, 5, 2, 17, 8, 6, 2, 4, 8, 4, 17, 6], [3, 2, 2, 3, 3, 8, 0, 2, 3, 8, 5, 5], [22, 17, 23, 7, 10, 13, 9, 1, 3, 4, 1, 0], [17, 18, 27, 23, 8, 19, 9, 3, 2, 6, 14, 6], [15, 7, 4, 7, 6, 12, 4, 0, 2, 9, 8, 3], [1, 16, 7, 0, 6, 9, 4, 0, 1, 5, 5, 11], [18, 2, 15, 15, 21, 14, 10, 6, 16, 6, 16, 16], [40, 46, 18, 20, 18, 10, 14, 10, 14, 18, 6, 11], [12, 26, 5, 9, 9, 15, 8, 14, 7, 6, 13, 12], [18, 22, 8, 9, 10, 7, 8, 5, 7, 6, 3, 7], [16, 12, 9, 16, 8, 17, 14, 17, 23, 29, 24, 24]],
+
+};
+
+
+// Backup FY26 data for toggle
+var D26 = {};
+// ── HELPERS ──
+let currentPeriod = 'ytd';
+let currentPage = 'overview';
+let currentFY = '26'; // '25' or '26'
+
+function sum(arr, idxs) {
+  return idxs.reduce((t,i) => t + (arr[i] || 0), 0);
+}
+
+function roundedPercentages(values, totalOverride=null) {
+  const total = totalOverride != null ? totalOverride : values.reduce((a,b)=>a+b,0);
+  if (!total) return values.map(() => 0);
+  const exact = values.map(v => (v / total) * 100);
+  const base = exact.map(v => Math.floor(v));
+  let remainder = 100 - base.reduce((a,b)=>a+b,0);
+
+  const order = exact
+    .map((v,i) => ({ i, frac: v - Math.floor(v), value: values[i] }))
+    .sort((a,b) => {
+      if (b.frac !== a.frac) return b.frac - a.frac;
+      return b.value - a.value;
+    });
+
+  for (let k = 0; k < remainder; k++) {
+    base[order[k % order.length].i] += 1;
+  }
+  return base;
+}
+
+function pct(val, total, allValues=null, idx=null) {
+  if (!total) return '0%';
+  if (Array.isArray(allValues) && idx !== null) {
+    return roundedPercentages(allValues, total)[idx] + '%';
+  }
+  return Math.round(val/total*100) + '%';
+}
+
+function pctNum(val, total, allValues=null, idx=null) {
+  if (!total) return 0;
+  if (Array.isArray(allValues) && idx !== null) {
+    return roundedPercentages(allValues, total)[idx];
+  }
+  return Math.round(val/total*100);
+}
+
+function monthsInPeriod() { return QIDX[currentPeriod]; }
+
+function periodSum(key) { return sum(D[key], monthsInPeriod()); }
+
+function periodMonthData(key) { return monthsInPeriod().map(i => D[key][i]); }
+
+function periodMonthLabels() { return monthsInPeriod().map(i => MONTH_LABELS[i]); }
+
+// Period switcher removed — YTD only
+
+// ══════════════════════════════════════════════
+// PAGE SWITCHER
+// ══════════════════════════════════════════════
+function showPage(id, el) {
+  currentPage = id;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.page-tab').forEach(t => {
+    t.classList.remove('active');
+    t.setAttribute('aria-selected','false');
+  });
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+  el.setAttribute('aria-selected','true');
+  destroyCharts();
+  renderCurrentPage();
+  setTimeout(function(){animateKPIs(null);initExpandableKPIs();},80);
+}
+
+function renderCurrentPage() {
+  if (currentPage==='overview') renderOverview();
+  else if (currentPage==='demographics') renderDemographics();
+  else if (currentPage==='calls') renderCalls();
+  else if (currentPage==='outcomes') renderOutcomes();
+}
+
+// ══════════════════════════════════════════════
+// CHART ENGINE (pure Canvas 2D — no dependencies)
+// ══════════════════════════════════════════════
+const chartInstances = {};
+
+function destroyCharts() {
+  Object.keys(chartInstances).forEach(id => {
+    const c = document.getElementById(id);
+    if (c) {
+      const ctx = c.getContext('2d');
+      ctx.clearRect(0, 0, c.width, c.height);
+      c.removeAttribute('style');
+    }
+    delete chartInstances[id];
+  });
+}
+
+const B1='#003087', B2='#5B9BD5', B3='#8FBBDB', B4='#B8D4EA', B5='#D4E8F4';
+const PALETTE = [B1,B2,B3,B4,B5,'#cfe0f0','#e6f0f8','#f0f6fb'];
+
+function setupCanvas(canvas) {
+  const parent = canvas.parentElement;
+  const style = window.getComputedStyle(parent);
+  const padL = parseFloat(style.paddingLeft) || 0;
+  const padR = parseFloat(style.paddingRight) || 0;
+  const W = Math.max((parent.clientWidth - padL - padR), 200);
+  const H = parseInt(canvas.getAttribute('height')) || 220;
+  canvas.width = W;
+  canvas.height = H;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  return { ctx: canvas.getContext('2d'), W, H };
+}
+
+function drawBar(canvasId, labels, values, colors, opts={}) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const { ctx, W, H } = setupCanvas(canvas);
+  const pad = { top:10, right:16, bottom: opts.rotateLabels?52:28, left: opts.leftPad||40 };
+  const chartW = W - pad.left - pad.right;
+  const chartH = H - pad.top - pad.bottom;
+  const max = opts.axisMax || Math.max(...values, 1);
+  const n = labels.length;
+  const groupW = chartW / n;
+  const barW = Math.min(groupW * 0.6, opts.maxBarW||50);
+
+  // Y gridlines
+  ctx.strokeStyle = '#eef1f8';
+  ctx.lineWidth = 1;
+  const ticks = 4;
+  for (let t=0; t<=ticks; t++) {
+    const y = pad.top + chartH - (t/ticks)*chartH;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left+chartW, y); ctx.stroke();
+    ctx.fillStyle='#9aa5be'; ctx.font='12px Arial'; ctx.textAlign='right';
+    ctx.fillText(Math.round((t/ticks)*max), pad.left-6, y+3);
+  }
+
+  // Bars
+  const total = opts.showPct ? (opts.pctBase || values.reduce((a,b)=>a+b,0)) : 0;
+  const roundedPcts = (opts.showPct && opts.sumTo100) ? roundedPercentages(values, total) : null;
+  values.forEach((v,i) => {
+    const bh = (v/max)*chartH;
+    const x = pad.left + i*groupW + (groupW-barW)/2;
+    const y = pad.top + chartH - bh;
+    ctx.fillStyle = Array.isArray(colors) ? (colors[i]||B1) : colors;
+    roundRect(ctx, x, y, barW, bh, 3);
+    ctx.fill();
+    // value label on bar if room
+    if (bh>18) {
+      ctx.fillStyle='#fff'; ctx.font='bold 12px Arial'; ctx.textAlign='center';
+      ctx.fillText(v, x+barW/2, y+13);
+    }
+    // percentage above bar
+    if (opts.showPct && total > 0) {
+      const pct = roundedPcts ? roundedPcts[i] : Math.round(v/total*100);
+      ctx.fillStyle='#4a5568'; ctx.font='12px Arial'; ctx.textAlign='center';
+      ctx.fillText(pct+'%', x+barW/2, y-4);
+    }
+  });
+
+  // X labels
+  // Build hit areas for tooltips
+  const _hitAreas = values.map((v,i) => ({
+    x: pad.left+i*groupW+(groupW-barW)/2, y: pad.top+chartH-(v/max)*chartH,
+    w: barW, h: (v/max)*chartH, label: labels[i].replace('\\n',' '), value: v
+  }));
+  attachBarTooltips(canvasId, _hitAreas);
+
+  ctx.fillStyle='#6b7a99'; ctx.font='12px Arial'; ctx.textAlign='center';
+  labels.forEach((lbl,i) => {
+    const x = pad.left + i*groupW + groupW/2;
+    if (opts.rotateLabels) {
+      ctx.save(); ctx.translate(x, pad.top+chartH+6);
+      ctx.rotate(-Math.PI/4); ctx.textAlign='right';
+      ctx.fillText(lbl, 0, 0); ctx.restore();
+    } else {
+      const lines = lbl.split('\n');
+      lines.forEach((l,li) => ctx.fillText(l, x, pad.top+chartH+14+li*11));
+    }
+  });
+
+  chartInstances[canvasId] = true;
+}
+
+function drawGroupedBar(canvasId, labels, datasets, opts={}) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const { ctx, W, H } = setupCanvas(canvas);
+  const pad = {top:14,right:32,bottom:30,left:48};
+  const chartW=W-pad.left-pad.right, chartH=H-pad.top-pad.bottom;
+  const allVals = datasets.flatMap(d=>d.data);
+  const max = opts.axisMax || Math.max(...allVals,1);
+  const n=labels.length, nd=datasets.length;
+  const groupW=chartW/n, barW=Math.min((groupW-4)/nd, 32);
+
+  ctx.strokeStyle='#eef1f8'; ctx.lineWidth=1;
+  for(let t=0;t<=4;t++){
+    const y=pad.top+chartH-(t/4)*chartH;
+    ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(pad.left+chartW,y); ctx.stroke();
+    ctx.fillStyle='#9aa5be'; ctx.font='12px Arial'; ctx.textAlign='right';
+    ctx.fillText(Math.round((t/4)*max),pad.left-4,y+3);
+  }
+
+  datasets.forEach((ds,di) => {
+    ds.data.forEach((v,i) => {
+      const bh=(v/max)*chartH;
+      const x=pad.left+i*groupW+di*barW+(groupW-nd*barW)/2;
+      const y=pad.top+chartH-bh;
+      ctx.fillStyle=ds.color||PALETTE[di];
+      roundRect(ctx,x,y,barW-2,bh,2); ctx.fill();
+    });
+  });
+
+  ctx.fillStyle='#6b7a99'; ctx.font='12px Arial'; ctx.textAlign='center';
+  labels.forEach((lbl,i) => {
+    ctx.fillText(lbl, pad.left+i*groupW+groupW/2, pad.top+chartH+14);
+  });
+  chartInstances[canvasId]=true;
+}
+
+function drawLine(canvasId, labels, datasets, opts={}) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const { ctx, W, H } = setupCanvas(canvas);
+  const pad={top:14,right:32,bottom:30,left:48};
+  const chartW=W-pad.left-pad.right, chartH=H-pad.top-pad.bottom;
+  const allVals=datasets.flatMap(d=>d.data);
+  const max=opts.axisMax || Math.max(...allVals,1);
+  const n=labels.length;
+
+  ctx.strokeStyle='#eef1f8'; ctx.lineWidth=1;
+  for(let t=0;t<=4;t++){
+    const y=pad.top+chartH-(t/4)*chartH;
+    ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(pad.left+chartW,y); ctx.stroke();
+    ctx.fillStyle='#9aa5be'; ctx.font='12px Arial'; ctx.textAlign='right';
+    ctx.fillText(Math.round((t/4)*max),pad.left-4,y+3);
+  }
+
+  datasets.forEach(ds => {
+    const pts=ds.data.map((v,i)=>({
+      x: n===1 ? pad.left+chartW/2 : pad.left+i*(chartW/(n-1)),
+      y: pad.top+chartH-(v/max)*chartH
+    }));
+    // fill
+    if(ds.fill) {
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pad.top+chartH);
+      pts.forEach(p=>ctx.lineTo(p.x,p.y));
+      ctx.lineTo(pts[pts.length-1].x, pad.top+chartH);
+      ctx.closePath();
+      ctx.fillStyle=ds.fill; ctx.fill();
+    }
+    // line
+    ctx.beginPath(); ctx.strokeStyle=ds.color; ctx.lineWidth=2.5;
+    if(ds.dashed) ctx.setLineDash([5,3]); else ctx.setLineDash([]);
+    pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+    ctx.stroke(); ctx.setLineDash([]);
+    // dots
+    pts.forEach(p=>{
+      ctx.beginPath(); ctx.arc(p.x,p.y,3.5,0,Math.PI*2);
+      ctx.fillStyle=ds.color; ctx.fill();
+    });
+  });
+
+  // Collect all points for tooltips
+  const _linePoints = [];
+  datasets.forEach((ds,di) => {
+    ds.data.forEach((v,i) => {
+      _linePoints.push({
+        x: n===1 ? pad.left+chartW/2 : pad.left+i*(chartW/(n-1)),
+        y: pad.top+chartH-(v/max)*chartH,
+        label: labels[i], value: v,
+        datasetLabel: ds.label || null
+      });
+    });
+  });
+  attachLineTooltips(canvasId, _linePoints);
+
+  ctx.fillStyle='#6b7a99'; ctx.font='12px Arial'; ctx.textAlign='center';
+  labels.forEach((lbl,i) => {
+    const x = n===1 ? pad.left+chartW/2 : pad.left+i*(chartW/(n-1));
+    ctx.fillText(lbl, x, pad.top+chartH+14);
+  });
+  chartInstances[canvasId]=true;
+}
+
+function drawDonut(canvasId, labels, values, colors) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const { ctx, W, H } = setupCanvas(canvas);
+  const n = labels.length;
+  const lh = 20;
+  const legendH = n * lh + 8;
+  const availH = H - legendH;
+  const r = Math.min(W, availH) / 2 - 12;
+  const cx = W / 2, cy = availH / 2 + 4;
+  const ir = r * 0.55;
+  const total = values.reduce((a,b)=>a+b,0);
+  const roundedPcts = roundedPercentages(values, total);
+  let angle = -Math.PI / 2;
+
+  values.forEach((v,i) => {
+    const slice = (v/total)*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,angle,angle+slice);
+    ctx.closePath(); ctx.fillStyle=colors[i]; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx,cy,ir,0,Math.PI*2);
+    ctx.fillStyle='#fff'; ctx.fill();
+    angle += slice;
+  });
+
+  // single-column centred legend below donut
+  const startY = availH + 8;
+  const swatchW = 12, swatchH = 12, gap = 6;
+  ctx.font = '12px Arial';
+  labels.forEach((lbl,i) => {
+    const text = lbl + '  ' + roundedPcts[i] + '%';
+    const textW = ctx.measureText(text).width;
+    const rowW = swatchW + gap + textW;
+    const lx = (W - rowW) / 2;
+    const ly = startY + i * lh;
+    ctx.fillStyle = colors[i];
+    ctx.fillRect(lx, ly, swatchW, swatchH);
+    ctx.fillStyle = '#4a5568';
+    ctx.textAlign = 'left';
+    ctx.fillText(text, lx + swatchW + gap, ly + swatchH - 1);
+  });
+  chartInstances[canvasId] = true;
+}
+
+function roundRect(ctx,x,y,w,h,r) {
+  if(h<1) { ctx.rect(x,y+h,w,Math.max(1,Math.abs(h))); return; }
+  r=Math.min(r,h/2,w/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.arcTo(x+w,y,x+w,y+r,r); ctx.lineTo(x+w,y+h);
+  ctx.lineTo(x,y+h); ctx.lineTo(x,y+r);
+  ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
+}
+
+// ══════════════════════════════════════════════
+// KPI HELPERS
+// ══════════════════════════════════════════════
+function kpiCard(label, value, sub, detail) {
+  var expandAttr = detail ? ' data-expand="1"' : '';
+  var detailHtml = detail ? `<div class="kpi-detail">${detail}</div>` : '';
+  return `<div class="kpi kpi-sm"${expandAttr}><div class="kpi-label">${label}</div><div class="kpi-value">${value}</div><div class="kpi-sub">${sub||''}</div>${detailHtml}</div>`;
+}
+
+function setKPI(id, html) { document.getElementById(id).innerHTML = html; }
+
+function fmt(n) { return Math.ceil(Number(n)).toLocaleString(); }
+function roundDisplay(val) { return Math.ceil(Number(val)); }
+
+// ══════════════════════════════════════════════
+// BAR ROW BUILDER
+// ══════════════════════════════════════════════
+function buildBars(containerId, items, total, fixedMax, options={}) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const maxVal = fixedMax || Math.max(...items.map(i=>i.val));
+  const roundedPcts = (total && options.sumTo100) ? roundedPercentages(items.map(i=>i.val), total) : null;
+  el.innerHTML = items.map((item, idx) => {
+    const widthPct = Math.round((item.val/maxVal)*90);
+    const labelPct = total ? ((roundedPcts ? roundedPcts[idx] : Math.round(item.val/total*100)) + '%') : fmt(item.val);
+    return `<div class="bar-row">
+      <span class="bar-label">${item.label}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${widthPct}%;background:${item.color||B1};">${item.val>0?labelPct:''}</div></div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+// PAGE RENDERS
+// ══════════════════════════════════════════════
+function renderOverview() {
+  const idx = monthsInPeriod();
+  const eng = periodSum('engagements');
+  const fu = periodSum('followups');
+  const trans = periodSum('transports');
+  const days = idx.length * 30.4;
+  const callRate = roundDisplay(eng / days);
+  const followupRate = roundDisplay(fu / days);
+
+  // Activity cards — parallel, not sequential
+  const flowEl = document.getElementById('flow-cards');
+  var headEl = document.getElementById('flow-cards-heading');
+  if (headEl) headEl.textContent = 'Care Team activity — ' + FY_CONFIG[currentFY].dateRange;
+  if (flowEl) {
+    flowEl.innerHTML =
+      '<div class="flow-card">' +
+        '<div class="flow-card-label">Service calls</div>' +
+        '<div class="flow-card-value">' + fmt(eng) + '</div>' +
+        '<div class="flow-card-sub">Total calls responded to by the Care Team · avg ' + callRate + ' per day</div>' +
+      '</div>' +
+      '<div class="flow-card">' +
+        '<div class="flow-card-label">Follow-up contacts</div>' +
+        '<div class="flow-card-value">' + fmt(fu) + '</div>' +
+        '<div class="flow-card-sub">Ongoing check-ins after initial contact · avg ' + followupRate + ' per day</div>' +
+      '</div>' +
+      '<div class="flow-card">' +
+        '<div class="flow-card-label">Transports completed</div>' +
+        '<div class="flow-card-value">' + fmt(trans) + '</div>' +
+        '<div class="flow-card-sub">Care Team transports to a remote resource or location</div>' +
+      '</div>';
+  }
+  var transportNote = document.getElementById('transport-note');
+  if (transportNote) transportNote.style.display = currentFY === '25' ? 'block' : 'none';
+
+  var fyCfg = FY_CONFIG[currentFY];
+  setKPI('kpi-overview-bot',
+    kpiCard('Response time', roundDisplay(fyCfg.avgResponse) + ' min', 'Dispatch to arrival — ' + fyCfg.dateRange) +
+    kpiCard('Call duration', roundDisplay(fyCfg.avgDuration) + ' min', 'Arrival to close — ' + fyCfg.dateRange) +
+    kpiCard('Follow-up time', roundDisplay(fyCfg.avgFollowup) + ' min', 'Per follow-up engagement — ' + fyCfg.dateRange) +
+    kpiCard('Transport time', roundDisplay(fyCfg.avgTransport) + ' min', 'Per logged transport — ' + fyCfg.dateRange)
+  );
+
+  // Trend chart
+  const mLabels = periodMonthLabels();
+  const mEng = periodMonthData('engagements');
+  const mFU = periodMonthData('followups');
+
+  // Axis ceilings — scaled to FY
+  const isFY25 = currentFY === '25';
+  const AX = {
+    trend: isFY25 ? 400 : 300,
+    presenting: isFY25 ? 1200 : 700,
+    referral: isFY25 ? 1000 : 300,
+    age: 260, race: 400, housing: 140, dow: 260, tod: 200,
+    onscene: isFY25 ? 600 : 500, furef: isFY25 ? 1000 : 460, repeats: 30
+  };
+
+  if (mLabels.length === 1) {
+    drawGroupedBar('c-trend', mLabels,
+      [{label:'Engagements',data:mEng,color:B1},{label:'Follow-ups',data:mFU,color:B2}],
+      {axisMax: AX.trend});
+  } else {
+    drawLine('c-trend', mLabels, [
+      {data:mEng, color:B1, fill:'rgba(0,48,135,0.07)'},
+      {data:mFU, color:B2, fill:'rgba(91,155,213,0.07)'}
+    ], {axisMax: AX.trend});
+  }
+
+  const presItems = [
+    {label:'Basic needs', val:periodSum('presBasicNeeds'), color:B1},
+    {label:'Housing', val:periodSum('presHousing'), color:B1},
+    {label:'Welfare', val:periodSum('presWelfare'), color:B2},
+    {label:'Health', val:periodSum('presHealth'), color:B2},
+    {label:'Substance use', val:periodSum('presSubUse'), color:B3},
+    {label:'Crisis intervention', val:periodSum('presCrisis'), color:B3},
+  ];
+  buildBars('bars-presenting', presItems, eng, AX.presenting);
+  attachBarRowTooltips('bars-presenting');
+
+  const refItems = [
+    {label:'Ambassadors', val:periodSum('refAmbassadors'), color:B1},
+    {label:'Sycamores outreach', val:periodSum('refSycamores'), color:B1},
+    {label:'Self-referral', val:periodSum('refSelf'), color:B2},
+    {label:'Homeless concern line', val:periodSum('refHCL'), color:B2},
+    {label:'Law enforcement', val:periodSum('refLawEnf'), color:B3},
+    {label:'Other City agency', val:periodSum('refWeHoAgency'), color:B3},
+    {label:'City staff', val:periodSum('refWeHoStaff'), color:B3},
+    {label:'Friend or family', val:periodSum('refFriendFam'), color:B3},
+    {label:'Fire / EMS', val:periodSum('refFireEMS'), color:B3},
+    {label:'Other', val:periodSum('refOther'), color:B3},
+  ];
+  buildBars('bars-referral', refItems, eng, AX.referral, {sumTo100: true});
+  attachBarRowTooltips('bars-referral');
+}
+
+function renderDemographics() {
+  // For FY26: use FYTD unduplicated D_demo values
+  // For FY25: demographics not available as FYTD — use YTD periodSum from D
+  const isFY26 = currentFY === '26';
+
+  const ageVals = isFY26
+    ? ['ageU17','age1834','age3549','age5064','age6579','age80p','ageDTS'].map(k=>D_demo[k])
+    : ['ageU17','age1834','age3549','age5064','age6579','age80p','ageDTS'].map(k=>periodSum(k));
+
+  const raceVals = isFY26
+    ? ['raceWhite','raceBlack','raceHispanic','raceDTS','raceOther','raceAsian'].map(k=>D_demo[k])
+    : ['raceWhite','raceBlack','raceHispanic','raceDTS','raceOther','raceAsian'].map(k=>periodSum(k));
+
+  const gMale   = isFY26 ? D_demo.genderMale   : periodSum('genderMale');
+  const gFemale = isFY26 ? D_demo.genderFemale : periodSum('genderFemale');
+  const gDTS    = isFY26 ? D_demo.genderDTS    : periodSum('genderDTS');
+
+  const housed   = isFY26 ? D_demo.housingHoused   : periodSum('housingHoused');
+  const unhoused = isFY26 ? D_demo.housingUnhoused : periodSum('housingUnhoused');
+  const dts      = isFY26 ? D_demo.housingDTS      : periodSum('housingDTS');
+  const total    = housed + unhoused + dts || 1;
+
+  const isFY25d = currentFY === '25';
+  const AX = { age: isFY25d ? 500 : 260, race: isFY25d ? 700 : 400, housing: isFY25d ? 250 : 140 };
+  const pctBase = isFY26 ? DEMO_TOTAL : total;
+
+
+  drawBar('c-age',
+    ['0–17','18–34','35–49','50–64','65–79','80+','DTS'],
+    ageVals,
+    [B4,B1,B1,B1,B2,B3,B4], {axisMax: AX.age, showPct: true, pctBase: pctBase, sumTo100: true}
+  );
+
+  drawBar('c-race',
+    ['White','Black / AA','Hispanic /\nLatino','DTS','Other /\nMulti','Asian / PI'],
+    raceVals,
+    [B1,B1,B1,B3,B2,B4], {leftPad:44, axisMax: AX.race, showPct: true, pctBase: pctBase, sumTo100: true}
+  );
+
+  drawDonut('c-gender',['Male','Female','Decline to state'],[gMale,gFemale,gDTS],[B1,B2,B4]);
+  attachDonutTooltips('c-gender',['Male','Female','Decline to state'],[gMale,gFemale,gDTS]);
+
+  drawDonut('c-housing-donut',
+    ['Unhoused','Housed','Unknown'],
+    [unhoused, housed, dts],
+    [B1, B2, B4]
+  );
+  attachDonutTooltips('c-housing-donut',
+    ['Unhoused','Housed','Unknown'],
+    [unhoused, housed, dts]
+  );
+
+  const mLabels  = periodMonthLabels();
+  const mHoused  = periodMonthData('housingHoused');
+  const mUnhoused = periodMonthData('housingUnhoused');
+  if (mLabels.length===1) {
+    drawGroupedBar('c-housing',mLabels,[
+      {label:'Unhoused',data:mUnhoused,color:B1},
+      {label:'Housed',data:mHoused,color:B2}
+    ], {axisMax: AX.housing});
+  } else {
+    drawLine('c-housing', mLabels, [
+      {data:mUnhoused, color:B1, fill:'rgba(0,48,135,0.07)'},
+      {data:mHoused, color:B2, fill:'rgba(91,155,213,0.07)'}
+    ], {axisMax: AX.housing});
+    attachLineTooltips('c-housing', mLabels, [{label:'Unhoused',data:mUnhoused},{label:'Housed',data:mHoused}]);
+  }
+}
+
+function renderCalls() {
+  const idx = monthsInPeriod();
+  const isFY25c = currentFY === '25';
+  const AX = { dow: isFY25c ? 280 : 260, tod: isFY25c ? 300 : 200 };
+
+  const dowKeys=['dowSun','dowMon','dowTue','dowWed','dowThu','dowFri','dowSat'];
+  const dowVals = dowKeys.map(k=>periodSum(k));
+  const maxDow = Math.max(...dowVals);
+  const dowColors = dowVals.map(v => v===maxDow?B1:B3);
+  drawBar('c-dow',['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], dowVals, dowColors, {axisMax: AX.dow});
+
+  const todLabels=['12–2a','2–4a','4–6a','6–8a','8–10a','10a–12p','12–2p','2–4p','4–6p','6–8p','8–10p','10p–12a'];
+  const todVals = D.tod.map(row => sum(row,idx));
+  const maxTod = Math.max(...todVals);
+  const todColors = todVals.map(v=>v===maxTod?B1:v>maxTod*0.7?B2:B3);
+  drawBar('c-tod', todLabels, todVals, todColors, {rotateLabels:true, maxBarW:32, axisMax: AX.tod});
+
+  const locLabels=['Public space','Telephone','Sheriff station','Private residence','Business','Other'];
+  const locVals=['locPublic','locTelephone','locSheriff','locPrivRes','locBusiness','locOther'].map(k=>periodSum(k));
+  const locTotal = locVals.reduce((a,b)=>a+b,0);
+  const locItems = locLabels.map((lbl,i) => ({label:lbl, val:locVals[i], color:[B1,B2,B3,B4,B3,B4][i]}));
+  buildBars('bars-loc', locItems, locTotal, null, {sumTo100: true});
+  attachBarRowTooltips('bars-loc');
+
+  var callTime = CALL_TIME_CONFIG[currentFY];
+  var callTimeNote = document.querySelector('#tbl-calltime')?.closest('.chart-card')?.querySelector('.chart-note');
+  if (callTimeNote) {
+    callTimeNote.textContent = 'Full-year averages — ' + callTime.dateRange + '';
+  }
+  document.getElementById('tbl-calltime').innerHTML = `
+    <tr class="row-group"><td colspan="2">Arrival speed</td></tr>
+    <tr><td>Avg dispatch → arrival</td><td>${callTime.responseAvg} min</td></tr>
+    <tr><td>Time from dispatch to team arrival — median</td><td>${callTime.responseMedian} min</td></tr>
+    <tr class="row-group"><td colspan="2">Time spent on calls</td></tr>
+    <tr><td>Avg time on scene</td><td>${callTime.callAvg} min</td></tr>
+    <tr><td>Duration per call, arrival to close — median</td><td>${callTime.callMedian} min</td></tr>
+    <tr class="row-group"><td colspan="2">Queue wait (when team was already on a call)</td></tr>
+    <tr><td>Avg queue wait</td><td>${callTime.queueAvg} min</td></tr>
+    <tr><td>Wait time in queue — median</td><td>${callTime.queueMedian} min</td></tr>`;
+}
+
+function renderOutcomes() {
+  const fuEng = periodSum('followups');
+  const trans = periodSum('transports');
+  const isFY25o = currentFY === '25';
+  const AX = { onscene: isFY25o ? 900 : 500, furef: isFY25o ? undefined : 460, repeats: isFY25o ? 100 : 30 };
+
+  var fyCfg = FY_CONFIG[currentFY];
+  var outcomesHead = document.getElementById('outcomes-cards-heading');
+  if (outcomesHead) outcomesHead.textContent = 'Outcomes activity — ' + fyCfg.dateRange;
+
+  var outcomesEl = document.getElementById('kpi-outcomes-top');
+  if (outcomesEl) {
+    outcomesEl.innerHTML =
+      '<div class="flow-card">' +
+        '<div class="flow-card-label">On-scene services</div>' +
+        '<div class="flow-card-value">' + fmt(periodSum('onSceneUnique')) + '</div>' +
+        '<div class="flow-card-sub">Contacts receiving resources or referrals during service calls</div>' +
+      '</div>' +
+      '<div class="flow-card">' +
+        '<div class="flow-card-label">Follow-up services</div>' +
+        '<div class="flow-card-value">' + fmt(periodSum('fuUnique')) + '</div>' +
+        '<div class="flow-card-sub">Contacts receiving resources or referrals during follow-up outreach</div>' +
+      '</div>' +
+      '<div class="flow-card">' +
+        '<div class="flow-card-label">Transports completed</div>' +
+        '<div class="flow-card-value">' + fmt(trans) + '</div>' +
+        '<div class="flow-card-sub">Logged remote-resource transports · avg ' + roundDisplay(fyCfg.avgTransport) + ' min</div>' +
+      '</div>';
+  }
+
+  const onSceneItems = [
+    {label:'Supplies / basic needs', val:periodSum('onSceneSupplies'), color:B1},
+    {label:'Shelter / housing', val:periodSum('onSceneShelter'), color:B1},
+    {label:'Food resources', val:periodSum('onSceneFood'), color:B2},
+    {label:'Health services', val:periodSum('onSceneHealth'), color:B2},
+    {label:'Transport coordination', val:periodSum('onSceneTransCoord'), color:B3},
+    {label:'SUD treatment', val:periodSum('onSceneSUD'), color:B3},
+    {label:'Mental health', val:periodSum('onSceneMH'), color:B4}
+  ];
+  const displayedOnSceneItems = isFY25o ? onSceneItems.filter(function(item){ return item.val > 0; }) : onSceneItems;
+  buildBars('bars-onscene', displayedOnSceneItems, null, AX.onscene);
+  attachBarRowTooltips('bars-onscene');
+
+  var onSceneCard = document.getElementById('bars-onscene');
+  if (onSceneCard && onSceneCard.closest('.chart-card')) {
+    var note = onSceneCard.closest('.chart-card').querySelector('.chart-note');
+    if (note) note.textContent = 'Count of resources or referrals provided during service calls';
+  }
+
+  const followupItems = [
+    {label:'Shelter / housing', val:periodSum('fuShelter'), color:B1},
+    {label:'Declined services', val:periodSum('fuDeclined'), color:B3},
+    {label:'Food resources', val:periodSum('fuFood'), color:B2},
+    {label:'Health services', val:periodSum('fuHealth'), color:B2},
+    {label:'Mental health', val:periodSum('fuMH'), color:B3},
+    {label:'SUD treatment', val:periodSum('fuSUD'), color:B4}
+  ];
+  buildBars('bars-followup', followupItems, null, AX.furef);
+  attachBarRowTooltips('bars-followup');
+
+  const lasd = periodSum('frLASD');
+  const lasdH = periodSum('frLASDHoused');
+  const lasdU = periodSum('frLASDUnhoused');
+  const lasdD = Math.max(0, lasd - lasdH - lasdU);
+  const lacfd = periodSum('frLACFD');
+  const lacfdH = periodSum('frLACFDHoused');
+  const lacfdU = periodSum('frLACFDUnhoused');
+  const lacfdD = Math.max(0, lacfd - lacfdH - lacfdU);
+  const holds = periodSum('frHoldsApplied');
+  const voided = periodSum('frHoldsVoided');
+
+  var tbl = document.getElementById('tbl-fr');
+  if (tbl) {
+    tbl.innerHTML = ''
+      + '<tr class="row-group"><td colspan="2">Response support requested — FY ' + (currentFY === '25' ? '2025' : '2026') + '</td></tr>'
+      + '<tr class="row-group"><td colspan="2">Sheriff (LASD)</td></tr>'
+      + '<tr><td>Times Care Team requested LASD support</td><td>' + lasd + '</td></tr>'
+      + '<tr class="row-indent"><td>Contacts who were unhoused</td><td>' + lasdU + '</td></tr>'
+      + '<tr class="row-indent"><td>Contacts who were housed</td><td>' + lasdH + '</td></tr>'
+      + (lasdD ? '<tr class="row-indent"><td>Housing status not recorded</td><td>' + lasdD + '</td></tr>' : '')
+      + '<tr class="row-group"><td colspan="2">Fire / EMS (LACFD)</td></tr>'
+      + '<tr><td>Times Care Team requested Fire/EMS support</td><td>' + lacfd + '</td></tr>'
+      + '<tr class="row-indent"><td>Contacts who were unhoused</td><td>' + lacfdU + '</td></tr>'
+      + '<tr class="row-indent"><td>Contacts who were housed</td><td>' + lacfdH + '</td></tr>'
+      + (lacfdD ? '<tr class="row-indent"><td>Housing status not recorded</td><td>' + lacfdD + '</td></tr>' : '')
+      + '<tr class="row-group"><td colspan="2">Involuntary holds</td></tr>'
+      + '<tr><td>Holds initiated (5585 / 5150)</td><td>' + holds + '</td></tr>'
+      + '<tr><td>Holds voided or discontinued</td><td>' + voided + '</td></tr>';
+  }
+
+  const mLabels = periodMonthLabels();
+  const mRepeats = periodMonthData('repeats');
+  const repeatAxisMax = Math.max(10, Math.ceil(Math.max.apply(null, mRepeats.concat([0])) / 5) * 5);
+  drawBar('c-repeat', mLabels, mRepeats, B1, {axisMax: repeatAxisMax, rotateLabels: mLabels.length > 6});
+
+  var repeatCanvas = document.getElementById('c-repeat');
+  if (repeatCanvas && repeatCanvas.closest('.chart-card')) {
+    var repeatNote = repeatCanvas.closest('.chart-card').querySelector('.chart-note');
+    if (repeatNote) {
+      repeatNote.textContent = isFY25o
+        ? 'Monthly trend across FY 2025. June 2025 has been adjusted to 25 repeat contacts for presentation purposes.'
+        : 'Contacts logged more than once within the same month. Does not capture repeat encounters where the individual declined to provide identifying information.';
+    }
+  }
+}
+
+
+// ── INIT ──
+// Defer first render so Chrome has completed layout before we measure widths
+function init() {
+
+  // Backup FY26 data for year toggle
+  Object.keys(D).forEach(function(k) {
+    if (Array.isArray(D[k]) && Array.isArray(D[k][0])) {
+      D26[k] = D[k].map(function(r){return r.slice();});
+    } else if (Array.isArray(D[k])) {
+      D26[k] = D[k].slice();
+    } else {
+      D26[k] = D[k];
+    }
+  });
+  FY_CONFIG['26'].data = D26;
+  updateFYNote('26');
+  renderCurrentPage();
+  initExpandableKPIs();
+  setTimeout(function(){animateKPIs(null);},200);
+
+  // Redraw on window resize so charts never stay squeezed after resizing
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      adjustCanvasHeights();
+      destroyCharts();
+      renderCurrentPage();
+    }, 150);
+  });
+}
+
+if (document.readyState === 'complete') {
+  requestAnimationFrame(() => requestAnimationFrame(init));
+} else {
+  window.addEventListener('load', () => requestAnimationFrame(() => requestAnimationFrame(init)));
+}
+
+// ══════════════════════════════════════════════
+// TOOLTIP SYSTEM
+// ══════════════════════════════════════════════
+const tooltip = document.getElementById('chart-tooltip');
+
+
+// ── EXPANDABLE KPI CARDS ──
+function initExpandableKPIs() {
+  document.addEventListener('click', function(e) {
+    var card = e.target.closest('.kpi[data-expand]');
+    if (!card) return;
+    var detail = card.querySelector('.kpi-detail');
+    if (!detail) return;
+    var isOpen = detail.style.maxHeight && detail.style.maxHeight !== '0px';
+    detail.style.maxHeight = isOpen ? '0px' : '200px';
+    detail.style.paddingTop = isOpen ? '0' : '8px';
+    detail.style.opacity = isOpen ? '0' : '1';
+    card.classList.toggle('kpi-expanded', !isOpen);
+  });
+}
+
+
+
+
+function updateFYNote(fy) {
+  var note = document.getElementById('fy-context-note');
+  var footer = document.getElementById('dash-footer');
+  if (!note) return;
+  if (fy === '26') {
+    note.textContent = 'FY 2026 data covers July 2025 through March 2026 — a partial fiscal year. Totals reflect 9 of 12 months.';
+    note.classList.add('visible');
+  } else {
+    note.textContent = '';
+    note.classList.remove('visible');
+  }
+  if (footer) footer.innerHTML = '<div></div>';
+}
+
+// ── FY SWITCHER ──
+const FY_CONFIG = {
+  '25': {
+    avgResponse: 8.3, avgDuration: 23, avgFollowup: 21.1, avgTransport: 46,
+    dateRange: 'Jul 2024–Jun 2025',
+    months: ["Jul 24", "Aug 24", "Sep 24", "Oct 24", "Nov 24", "Dec 24", "Jan 25", "Feb 25", "Mar 25", "Apr 25", "May 25", "Jun 25"],
+    qidx: {"ytd": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "q1": [0, 1, 2], "q2": [3, 4, 5], "q3": [6, 7, 8], "q4": [9, 10, 11]},
+    qlabels: {"ytd": "Jul 2024 \u2013 Jun 2025", "q1": "Q1: Jul \u2013 Sep 2024", "q2": "Q2: Oct \u2013 Dec 2024", "q3": "Q3: Jan \u2013 Mar 2025", "q4": "Q4: Apr \u2013 Jun 2025"},
+    data: D25
+  },
+  '26': {
+    avgResponse: 19, avgDuration: 28, avgFollowup: 17, avgTransport: 39,
+    dateRange: 'Jul 2025–Mar 2026',
+    months: ["Jul 25", "Aug 25", "Sep 25", "Oct 25", "Nov 25", "Dec 25", "Jan 26", "Feb 26", "Mar 26"],
+    qidx: {"ytd": [0, 1, 2, 3, 4, 5, 6, 7, 8], "q1": [0, 1, 2], "q2": [3, 4, 5], "q3": [6, 7, 8]},
+    qlabels: {"ytd": "Jul 2025 \u2013 Mar 2026", "q1": "Q1: Jul \u2013 Sep 2025", "q2": "Q2: Oct \u2013 Dec 2025", "q3": "Q3: Jan \u2013 Mar 2026"},
+    data: null // populated from D26 backup in init
+  }
+};
+
+const CALL_TIME_CONFIG = {
+  '25': {
+    responseAvg: 8.3,
+    responseMedian: 13,
+    callAvg: 23,
+    callMedian: 10,
+    queueAvg: 5,
+    queueMedian: 6,
+    dateRange: 'July 2024–June 2025'
+  },
+  '26': {
+    responseAvg: 19,
+    responseMedian: 14,
+    callAvg: 28,
+    callMedian: 13,
+    queueAvg: 8,
+    queueMedian: 4,
+    dateRange: 'July 2025–March 2026'
+  }
+};
+
+function switchFY(fy) {
+  currentFY = fy;
+  var cfg = FY_CONFIG[fy];
+  updateFYNote(fy);
+  // Update button styles
+  ['btn-fy25','btn-fy26'].forEach(function(id) {
+    var btn = document.getElementById(id);
+    if (!btn) return;
+    var active = (id === 'btn-fy'+fy);
+    btn.classList.toggle('active', active);
+  });
+  // Swap data
+  var src = fy === '25' ? D25 : D26;
+  Object.keys(src).forEach(function(k) {
+    if (Array.isArray(src[k]) && Array.isArray(src[k][0])) {
+      D[k] = src[k].map(function(r){return r.slice();});
+    } else if (Array.isArray(src[k])) {
+      D[k] = src[k].slice();
+    } else {
+      D[k] = src[k];
+    }
+  });
+  // Update month labels and period config
+  MONTH_LABELS = cfg.months;
+  QIDX = cfg.qidx;
+  QLABELS = cfg.qlabels;
+  // Re-render
+  currentPeriod = 'ytd';
+  destroyCharts();
+  renderCurrentPage();
+  setTimeout(function(){animateKPIs(null);},80);
+}
+
+// ── COUNT-UP ANIMATION ──
+function countUp(el, target, duration) {
+  if (!el) return;
+  var raw = String(target).replace(/,/g,'');
+  var num = parseFloat(raw);
+  if (isNaN(num)) return;
+  var startTime = null;
+  function step(ts) {
+    if (!startTime) startTime = ts;
+    var progress = Math.min((ts - startTime) / duration, 1);
+    var ease = 1 - Math.pow(1 - progress, 3);
+    var val = Math.round(num * ease);
+    el.textContent = val.toLocaleString();
+    if (progress < 1) requestAnimationFrame(step);
+    else el.textContent = target; // restore original formatted value
+  }
+  requestAnimationFrame(step);
+}
+
+function animateKPIs(containerId) {
+  var container = containerId ? document.getElementById(containerId) : document;
+  if (!container) return;
+  container.querySelectorAll('.kpi-value, .flow-card-value').forEach(function(el) {
+    var raw = el.textContent.trim();
+    var num = parseFloat(raw.replace(/[,$%+~]/g,''));
+    if (isNaN(num) || num === 0 || raw.indexOf(':') > -1 || raw.indexOf('min') > -1) return;
+    var original = raw;
+    el.textContent = '0';
+    setTimeout(function() { countUp(el, original, 900); }, 80);
+  });
+}
+
+let tooltipTimeout;
+
+function showTooltip(x, y, content) {
+  if (!tooltip) return;
+  tooltip.innerHTML = content;
+  tooltip.classList.add('visible');
+  // Position: prefer right of cursor, flip left if near edge
+  const tw = tooltip.offsetWidth || 140;
+  const th = tooltip.offsetHeight || 36;
+  let tx = x + 14;
+  let ty = y - th / 2;
+  if (tx + tw > window.innerWidth - 8) tx = x - tw - 14;
+  if (ty < 8) ty = 8;
+  if (ty + th > window.innerHeight - 8) ty = window.innerHeight - th - 8;
+  tooltip.style.left = tx + 'px';
+  tooltip.style.top  = ty + 'px';
+}
+
+function hideTooltip() {
+  if (tooltip) tooltip.classList.remove('visible');
+}
+
+// Attach hover listeners to a canvas bar chart
+// hitAreas: array of {x, y, w, h, label, value}
+// Store tooltip handlers on canvas/element to allow removal on re-render
+function _setCanvasTooltip(canvasId, onMove, onLeave) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  if (canvas._ttMove) canvas.removeEventListener('mousemove', canvas._ttMove);
+  if (canvas._ttLeave) canvas.removeEventListener('mouseleave', canvas._ttLeave);
+  canvas._ttMove = onMove;
+  canvas._ttLeave = onLeave;
+  canvas.addEventListener('mousemove', onMove);
+  canvas.addEventListener('mouseleave', onLeave);
+}
+
+function attachBarTooltips(canvasId, hitAreas) {
+  _setCanvasTooltip(canvasId, function(e) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    let found = false;
+    for (const area of hitAreas) {
+      if (mx >= area.x && mx <= area.x + area.w && my >= area.y && my <= area.y + area.h) {
+        showTooltip(e.clientX, e.clientY, '<strong>' + area.label + '</strong><br>' + area.value.toLocaleString());
+        found = true; break;
+      }
+    }
+    if (!found) hideTooltip();
+  }, hideTooltip);
+}
+
+function attachLineTooltips(canvasId, points) {
+  const RADIUS = 18;
+  _setCanvasTooltip(canvasId, function(e) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    let best = null, bestDist = Infinity;
+    for (const pt of points) {
+      const d = Math.sqrt((mx-pt.x)**2 + (my-pt.y)**2);
+      if (d < RADIUS && d < bestDist) { bestDist = d; best = pt; }
+    }
+    if (best) {
+      const line = best.datasetLabel ? '<strong>' + best.datasetLabel + '</strong><br>' : '';
+      showTooltip(e.clientX, e.clientY, line + best.label + ': ' + best.value.toLocaleString());
+    } else { hideTooltip(); }
+  }, hideTooltip);
+}
+
+function attachBarRowTooltips(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  // Remove old listeners by cloning each row
+  el.querySelectorAll('.bar-row').forEach(row => {
+    const lbl = row.querySelector('.bar-label');
+    const fill = row.querySelector('.bar-fill');
+    if (!lbl || !fill) return;
+    const labelText = lbl.textContent.trim();
+    const valText = fill.textContent.trim();
+    row.onmouseenter = function(e) { showTooltip(e.clientX, e.clientY, '<strong>' + labelText + '</strong><br>' + valText); };
+    row.onmousemove  = function(e) { showTooltip(e.clientX, e.clientY, '<strong>' + labelText + '</strong><br>' + valText); };
+    row.onmouseleave = hideTooltip;
+  });
+}
+
+function attachDonutTooltips(canvasId, labels, values) {
+  const total = values.reduce((a,b)=>a+b,0);
+  _setCanvasTooltip(canvasId, function(e) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const geom = canvas._donutGeom;
+    if (!geom) return;
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const dx = mx - geom.cx, dy = my - geom.cy;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < geom.ir || dist > geom.r) { hideTooltip(); return; }
+    let angle = Math.atan2(dy, dx) + Math.PI/2;
+    if (angle < 0) angle += Math.PI*2;
+    let cumAngle = 0;
+    for (let i=0; i<values.length; i++) {
+      cumAngle += (values[i]/total)*Math.PI*2;
+      if (angle <= cumAngle) {
+        const pct = Math.round(values[i]/total*100);
+        showTooltip(e.clientX, e.clientY, '<strong>' + labels[i] + '</strong><br>' + values[i].toLocaleString() + ' (' + pct + '%)');
+        return;
+      }
+    }
+    hideTooltip();
+  }, hideTooltip);
+}
+
+
+// ── MOBILE CANVAS HEIGHT ADJUSTMENT ──
+function adjustCanvasHeights() {
+  if (window.innerWidth <= 520) {
+    document.querySelectorAll('canvas').forEach(c => {
+      const orig = parseInt(c.getAttribute('data-orig-height') || c.height);
+      c.setAttribute('data-orig-height', orig);
+      c.height = Math.round(orig * 0.7);
+    });
+  } else {
+    document.querySelectorAll('canvas').forEach(c => {
+      const orig = c.getAttribute('data-orig-height');
+      if (orig) c.height = parseInt(orig);
+    });
+  }
+}
+document.addEventListener('DOMContentLoaded', function() { adjustCanvasHeights(); });
+
+</script>
+<div class="chart-tooltip" id="chart-tooltip"></div>
+</body>
+</html>
