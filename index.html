@@ -22,6 +22,21 @@
 
   /* ── PERIOD FILTER ── */
   .page-tab:focus-visible { outline: 3px solid #003087; outline-offset: -2px; }
+  .period-filter { background:#fff; border-bottom:1px solid #dce3ef; padding:10px 28px; display:flex; flex-direction:column; gap:8px; }
+  .period-filter-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .period-filter-row-pills { align-items:flex-start; }
+  .period-filter-label { font-size:12px; font-weight:700; color:#6b7a99; text-transform:uppercase; letter-spacing:0.6px; white-space:nowrap; }
+  .period-filter-label-pills { padding-top:6px; }
+  .period-select { font-size:13px; font-weight:700; color:#003087; background:#f0f4ff; border:1.5px solid #c5d4ec; border-radius:6px; padding:6px 10px; cursor:pointer; }
+  .period-select:focus-visible { outline:3px solid #003087; outline-offset:1px; }
+  .period-filter-range { font-size:13px; color:#6b7a99; }
+  .period-reset-btn { font-size:12px; font-weight:700; color:#003087; background:#fff; border:1.5px solid #c5d4ec; border-radius:14px; padding:4px 12px; cursor:pointer; transition:all 0.15s ease; }
+  .period-reset-btn:hover { background:#f0f4ff; }
+  .month-pills { display:flex; flex-wrap:wrap; gap:6px; }
+  .month-pill { font-size:12px; font-weight:700; color:#4a5568; background:#f0f2f7; border:1.5px solid #e0e4ee; border-radius:14px; padding:5px 12px; cursor:pointer; transition:all 0.15s ease; }
+  .month-pill:hover { border-color:#a8bcdc; }
+  .month-pill.active { background:#003087; color:#fff; border-color:#003087; }
+  .month-pill:focus-visible { outline:3px solid #003087; outline-offset:1px; }
 
   /* ── PAGE NAV ── */
   .page-nav { background: #fff; border-bottom: 1px solid #dce3ef; padding: 0 28px; display: flex; gap: 0; }
@@ -90,6 +105,7 @@
     .header { flex-direction: column; align-items: flex-start; gap: 12px; }
     .header-right { text-align: left; }
     .bar-label { width: 130px; }
+    .period-filter { padding: 10px 16px; }
   }
   @media (max-width: 520px) {
     .kpi-4, .kpi-3 { grid-template-columns: 1fr; }
@@ -143,6 +159,18 @@
 <div class="fy-note" id="fy-context-note"></div>
 
 <!-- PERIOD FILTER -->
+<div class="period-filter">
+  <div class="period-filter-row">
+    <span class="period-filter-label">View</span>
+    <select id="period-quick-select" class="period-select" onchange="setQuickPeriod(this.value)" aria-label="Quick-select a year-to-date or quarter view"></select>
+    <span class="period-filter-range" id="period-range-label"></span>
+    <button id="period-reset-btn" class="period-reset-btn" onclick="setMonths(null)" style="display:none;">Reset to year to date</button>
+  </div>
+  <div class="period-filter-row period-filter-row-pills">
+    <span class="period-filter-label period-filter-label-pills">Or pick months</span>
+    <div class="month-pills" id="period-month-pills"></div>
+  </div>
+</div>
 
 <!-- PAGE NAV -->
 <div class="page-nav">
@@ -159,7 +187,7 @@
 <div class="page active" id="page-overview">
 
   <div class="page-context">
-    Call volume reached a new high in March 2026, with self-referrals and HCL-sourced calls driving significant growth. Housing and basic needs remain the top presenting issues.
+    Call volume peaked in March 2026 and eased slightly in April, with self-referrals and HCL-sourced calls still driving most of the year's growth. Housing and basic needs remain the top presenting issues.
   </div>
 
   <div class="flow-cards-wrap"><div class="flow-cards-heading" id="flow-cards-heading">Care Team activity</div><div id="flow-cards" class="flow-cards"></div><p class="flow-cards-note" id="transport-note">FY 2025 transport counts reflect logged transports to a remote resource or location. Transport counts are shown separately from follow-up contacts.</p></div>
@@ -314,142 +342,144 @@
 // ══════════════════════════════════════════════
 // DATA
 // ══════════════════════════════════════════════
-const MONTHS = ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
-let MONTH_LABELS = ['Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26'];
+const MONTHS = ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'];
+let MONTH_LABELS = ['Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26'];
 
 // Quarter index ranges
-let QIDX = { ytd:[0,1,2,3,4,5,6,7,8], q1:[0,1,2], q2:[3,4,5], q3:[6,7,8] };
-let QLABELS = { ytd:'Jul 2025 – Mar 2026', q1:'Q1: Jul – Sep 2025', q2:'Q2: Oct – Dec 2025', q3:'Q3: Jan – Mar 2026' };
+let QIDX = { ytd:[0,1,2,3,4,5,6,7,8,9], q1:[0,1,2], q2:[3,4,5], q3:[6,7,8], q4:[9] };
+let QLABELS = { ytd:'Jul 2025 – Apr 2026', q1:'Q1: Jul – Sep 2025', q2:'Q2: Oct – Dec 2025', q3:'Q3: Jan – Mar 2026', q4:'Q4 (partial): Apr 2026' };
 
-// All monthly series [Jul,Aug,Sep,Oct,Nov,Dec,Jan,Feb]
+// All monthly series [Jul,Aug,Sep,Oct,Nov,Dec,Jan,Feb,Mar,Apr]
+// Values verified against WeHo_Care_Monthly_Report_April_2026.xlsx (Summarized Data tab) on 2026-06-22.
+// 12 prior-month figures were corrected during that verification — see audit notes.
 const D = {
-  engagements:       [140,86,73,115,170,200,198,266,325],
-  followups:         [234,180,205,211,170,132,135,171,192],
-  unique:            [113,83,60,94,132,143,131,171,168],
+  engagements:       [140,86,73,115,170,200,198,266,325,275],
+  followups:         [234,180,205,211,170,132,135,171,192,226],
+  unique:            [113,83,60,94,132,143,131,171,168,185],
 
   // True unduplicated FYTD counts from Sycamores — only available for full YTD, not by quarter
-  FYTD_unique:       837,
-  FYTD_unhoused:     668,
-  FYTD_housed:       119,
-  FYTD_dts:          50,
-  repeats:           [14,5,7,15,14,20,19,26,28],
-  transports:        [16,20,16,15,25,9,17,23,19],
+  FYTD_unique:       966,
+  FYTD_unhoused:     772,
+  FYTD_housed:       142,
+  FYTD_dts:          52,
+  repeats:           [14,5,7,15,14,20,19,26,28,27],
+  transports:        [16,20,16,15,25,9,17,23,19,11],
 
-  ageU17:            [2,2,0,1,0,1,0,3,0],
-  age1834:           [21,15,16,19,28,25,29,43,30],
-  age3549:           [32,22,18,29,34,43,38,36,49],
-  age5064:           [26,16,13,21,30,30,25,36,36],
-  age6579:           [7,12,6,12,13,12,20,14,22],
-  age80p:            [3,0,0,1,0,0,2,3,1],
-  ageDTS:            [22,16,7,9,27,32,17,36,30],
+  ageU17:            [2,2,0,1,0,1,0,3,0,1],
+  age1834:           [21,15,16,19,28,25,29,43,30,36],
+  age3549:           [32,22,18,29,34,43,38,36,49,51],
+  age5064:           [26,16,13,21,30,30,25,36,36,42],
+  age6579:           [7,12,6,12,13,12,20,14,22,16],
+  age80p:            [3,0,0,1,0,0,2,3,1,1],
+  ageDTS:            [22,16,7,9,27,32,17,36,30,38],
 
-  genderMale:        [82,61,43,60,102,98,98,137,126],
-  genderFemale:      [30,22,17,31,29,45,31,32,39],
-  genderDTS:         [1,0,0,1,1,0,2,2,3],
+  genderMale:        [82,61,43,60,102,98,98,137,126,139],
+  genderFemale:      [30,22,17,31,29,45,31,32,39,44],
+  genderDTS:         [1,0,0,1,1,0,2,2,3,2],
 
-  raceAsian:         [1,3,1,1,1,5,1,5,5],
-  raceBlack:         [36,18,15,13,29,36,28,54,46],
-  raceHispanic:      [16,18,17,25,25,23,18,25,29],
-  raceWhite:         [47,40,21,44,59,54,60,64,63],
-  raceOther:         [4,1,2,3,7,13,14,10,13],
-  raceDTS:           [9,3,4,6,11,12,10,13,12],
+  raceAsian:         [1,3,1,1,1,5,1,5,5,0],
+  raceBlack:         [36,18,15,13,29,36,28,54,46,52],
+  raceHispanic:      [16,18,17,25,25,23,18,25,29,26],
+  raceWhite:         [47,40,21,44,59,54,60,64,63,69],
+  raceOther:         [4,1,2,3,7,13,14,10,13,14],
+  raceDTS:           [9,3,4,6,11,12,10,13,12,24],
 
-  housingHoused:     [10,8,7,11,13,17,29,25,28],
-  housingUnhoused:   [95,69,49,77,110,114,89,133,131],
-  housingDTS:        [8,6,4,4,9,12,13,13,9],
+  housingHoused:     [10,8,7,11,13,17,29,25,28,30],
+  housingUnhoused:   [95,69,49,77,110,114,89,133,131,149],
+  housingDTS:        [8,6,4,4,9,12,13,13,9,6],
 
-  refAmbassadors:    [33,27,14,14,53,45,30,16,10],
-  refSycamores:      [47,19,21,23,25,32,14,25,28],
-  refSelf:           [8,8,9,11,24,40,42,59,108],
-  refHCL:            [11,6,2,5,12,25,40,97,88],
-  refLawEnf:         [18,12,9,13,17,21,37,22,19],
-  refOther:          [18,10,14,27,14,14,13,15,24],
-  refWeHoAgency:     [0,1,0,11,10,12,7,10,17],
-  refWeHoStaff:      [3,2,1,8,7,6,5,8,15],
-  refFriendFam:      [0,0,0,0,5,2,4,10,7],
-  refFireEMS:        [2,0,3,1,1,2,4,2,5],
+  refAmbassadors:    [33,27,14,14,53,45,30,16,10,15],
+  refSycamores:      [47,19,21,23,25,32,14,25,28,37],
+  refSelf:           [8,8,9,11,24,40,42,59,108,81],
+  refHCL:            [11,6,2,5,12,25,40,97,88,89],
+  refLawEnf:         [18,12,9,13,17,21,37,22,19,20],
+  refOther:          [18,10,14,27,14,14,13,15,24,6],
+  refWeHoAgency:     [0,1,0,11,10,12,7,10,17,4],
+  refWeHoStaff:      [3,2,1,8,7,6,5,8,15,7],
+  refFriendFam:      [0,0,0,0,5,2,4,10,7,9],
+  refFireEMS:        [2,0,3,1,1,2,4,2,5,1],
 
-  presBasicNeeds:    [83,59,38,73,100,95,99,143,170],
-  presHousing:       [87,37,35,64,98,100,100,138,182],
-  presWelfare:       [26,19,22,24,32,46,42,61,72],
-  presHealth:        [11,7,8,7,21,16,21,24,31],
-  presSubUse:        [9,4,9,7,10,12,8,21,23],
-  presCrisis:        [5,4,3,4,7,10,10,16,23],
+  presBasicNeeds:    [83,59,38,73,100,95,99,143,170,150],
+  presHousing:       [87,37,35,64,98,100,100,138,182,169],
+  presWelfare:       [26,19,22,24,32,46,42,61,72,67],
+  presHealth:        [11,7,8,7,21,16,21,24,31,29],
+  presSubUse:        [9,4,9,7,10,12,8,21,23,11],
+  presCrisis:        [5,4,3,4,7,10,10,16,23,13],
 
-  locPublic:         [104,61,52,85,113,135,108,173,154],
-  locTelephone:      [6,3,7,11,33,41,33,64,131],
-  locSheriff:        [10,3,3,10,12,7,22,5,10],
-  locPrivRes:        [10,7,6,5,3,10,18,13,18],
-  locBusiness:       [8,11,5,3,3,1,6,5,4],
-  locOther:          [2,6,1,7,6,6,11,6,8],
+  locPublic:         [104,61,52,75,113,135,108,173,154,159],
+  locTelephone:      [6,3,7,11,33,41,33,64,131,77],
+  locSheriff:        [10,3,3,10,12,7,22,5,10,10],
+  locPrivRes:        [10,7,6,5,3,10,18,13,18,13],
+  locBusiness:       [8,9,5,3,3,1,6,5,4,10],
+  locOther:          [1,5,1,5,5,5,4,4,3,4],
 
-  dowSun: [19,13,11,6,31,27,18,25,28],
-  dowMon: [25,13,7,6,9,25,23,32,28],
-  dowTue: [21,13,14,15,16,21,13,21,39],
-  dowWed: [16,10,10,27,26,47,31,63,66],
-  dowThu: [25,13,12,30,32,33,36,57,60],
-  dowFri: [24,13,13,25,31,24,48,39,75],
-  dowSat: [11,17,7,12,25,23,29,30,29],
+  dowSun: [19,12,11,6,31,27,18,25,28,24],
+  dowMon: [25,13,8,8,9,26,23,32,28,28],
+  dowTue: [21,11,14,14,16,20,13,21,39,40],
+  dowWed: [16,8,10,25,26,47,31,63,66,64],
+  dowThu: [24,12,12,29,32,33,36,57,60,56],
+  dowFri: [24,13,12,21,31,24,48,38,75,21],
+  dowSat: [11,17,6,12,25,23,29,30,29,42],
 
-  tod: [[13,10,4,5,8,13,12,22,15],[6,3,2,6,9,3,17,17,14],[5,3,1,3,1,1,8,8,5],
-        [3,8,3,1,14,16,9,19,22],[10,7,6,9,24,35,19,27,55],[6,3,3,5,19,18,22,37,39],
-        [7,5,2,12,14,22,14,25,49],[32,14,13,22,22,32,29,25,44],[17,5,13,27,16,18,22,23,13],
-        [12,14,9,11,9,14,19,22,26],[10,11,9,11,16,11,11,10,15],[20,9,9,9,18,17,16,31,28]],
+  tod: [[12,10,4,5,8,13,12,22,15,15],[6,3,2,6,9,3,17,17,14,17],[5,3,1,3,1,1,8,8,5,16],
+        [3,8,3,1,14,16,9,19,22,29],[10,6,6,9,24,35,19,27,55,29],[6,2,3,5,19,18,22,37,39,22],
+        [7,5,2,12,14,22,14,25,49,21],[32,11,13,22,22,32,29,25,44,26],[17,4,12,23,16,18,22,23,13,20],
+        [12,14,9,9,9,14,19,22,26,28],[10,11,9,11,16,11,11,10,15,19],[20,9,9,9,18,17,16,31,28,33]],
 
-  onSceneSupplies:   [74,48,34,54,65,66,70,76,80],
-  onSceneShelter:    [62,19,20,47,47,46,47,66,69],
-  onSceneFood:       [6,5,4,13,26,12,22,30,37],
-  onSceneHealth:     [9,3,6,10,13,19,17,21,13],
-  onSceneTransCoord: [9,8,7,9,12,9,18,20,16],
-  onSceneSUD:        [3,0,7,7,5,6,8,17,14],
-  onSceneMH:         [3,1,1,4,3,3,10,9,5],
+  onSceneSupplies:   [74,48,34,54,65,66,70,76,80,88],
+  onSceneShelter:    [62,19,20,47,47,46,47,66,69,66],
+  onSceneFood:       [6,5,4,13,26,12,22,30,37,25],
+  onSceneHealth:     [9,3,6,10,13,19,17,21,13,14],
+  onSceneTransCoord: [9,8,7,9,12,9,18,20,16,8],
+  onSceneSUD:        [3,0,7,7,5,6,8,17,14,6],
+  onSceneMH:         [3,1,1,4,3,3,10,9,5,5],
 
-  fuShelter:         [63,56,64,87,54,53,25,47,47],
-  fuDeclined:        [69,43,39,48,36,31,35,55,55],
-  fuFood:            [44,41,28,22,33,11,8,19,13],
-  fuHealth:          [34,19,34,30,13,17,16,21,14],
-  fuMH:              [18,14,14,11,13,9,13,14,22],
-  fuSUD:             [13,11,15,8,18,7,5,11,11],
+  fuShelter:         [63,56,64,87,54,53,25,47,47,52],
+  fuDeclined:        [69,43,39,48,36,31,35,55,55,76],
+  fuFood:            [44,41,28,22,33,11,8,19,13,19],
+  fuHealth:          [34,19,34,30,13,17,16,21,14,26],
+  fuMH:              [18,14,14,11,13,9,13,14,22,23],
+  fuSUD:             [13,11,15,8,18,7,5,11,11,8],
 
-  frLASD:            [2,2,1,0,3,6,2,4,0],
-  frLASDHoused:      [1,0,0,0,0,2,0,2,0],
-  frLASDUnhoused:    [1,2,1,0,3,4,1,1,0],
-  frLASDDTS:         [0,0,0,0,0,0,0,0,0],
-  frLACFD:           [1,1,2,0,0,1,6,3,0],
-  frLACFDHoused:     [1,0,1,0,0,0,0,1,0],
-  frLACFDUnhoused:   [0,1,1,0,0,0,5,1,0],
-  frLACFDDTS:        [0,0,0,0,0,1,1,1,0],
-  frHoldsApplied:    [1,0,0,1,0,1,0,0,1],
-  frHoldsVoided:     [0,0,0,0,0,1,0,0,0],
+  frLASD:            [2,2,1,0,3,6,2,4,0,3],
+  frLASDHoused:      [1,0,0,0,0,2,0,2,0,2],
+  frLASDUnhoused:    [1,2,1,0,3,4,1,1,0,1],
+  frLASDDTS:         [0,0,0,0,0,0,1,1,0,0],
+  frLACFD:           [1,1,2,0,0,1,6,3,0,0],
+  frLACFDHoused:     [1,0,1,0,0,0,0,1,0,0],
+  frLACFDUnhoused:   [0,1,1,0,0,0,5,1,0,0],
+  frLACFDDTS:        [0,0,0,0,0,1,1,1,0,0],
+  frHoldsApplied:    [0,0,0,1,1,0,1,0,1,3],
+  frHoldsVoided:     [0,0,0,0,0,1,0,0,0,0],
 
-  onSceneUnique:     [98,71,55,77,102,100,107,125,118],
-  fuUnique:          [131,100,102,116,108,96,85,110,123],
+  onSceneUnique:     [98,71,55,77,102,100,107,125,118,127],
+  fuUnique:          [131,100,102,116,108,96,85,110,123,132],
 };
 
 
-// ── FYTD UNDUPLICATED DEMOGRAPHIC DATA (837 unique individuals) ──
+// ── FYTD UNDUPLICATED DEMOGRAPHIC DATA (966 unique individuals, Jul 2025–Apr 2026) ──
 let D_demo = {
-  ageU17:       5,
-  age1834:      178,
-  age3549:      226,
-  age5064:      164,
-  age6579:      65,
-  age80p:       8,
-  ageDTS:       191,
-  genderMale:   616,
-  genderFemale: 211,
-  genderDTS:    10,
+  ageU17:       6,
+  age1834:      203,
+  age3549:      263,
+  age5064:      186,
+  age6579:      71,
+  age80p:       9,
+  ageDTS:       228,
+  genderMale:   710,
+  genderFemale: 244,
+  genderDTS:    12,
   raceAsian:    18,
-  raceBlack:    216,
-  raceHispanic: 149,
-  raceWhite:    337,
-  raceOther:    52,
-  raceDTS:      65,
-  housingHoused:   119,
-  housingUnhoused: 668,
-  housingDTS:      50,
+  raceBlack:    246,
+  raceHispanic: 168,
+  raceWhite:    383,
+  raceOther:    64,
+  raceDTS:      87,
+  housingHoused:   142,
+  housingUnhoused: 772,
+  housingDTS:      52,
 };
-let DEMO_TOTAL = 837;
+let DEMO_TOTAL = 966;
 
 
 // ── FY 2025 DATA (Jul 2024 – Jun 2025) ──
@@ -546,7 +576,7 @@ const D25 = {
 // Backup FY26 data for toggle
 var D26 = {};
 // ── HELPERS ──
-let currentPeriod = 'ytd';
+let selectedMonths = null; // null = all months (YTD). Otherwise an array of month indices, e.g. [0,1,2] or [9].
 let currentPage = 'overview';
 let currentFY = '26'; // '25' or '26'
 
@@ -590,7 +620,10 @@ function pctNum(val, total, allValues=null, idx=null) {
   return Math.round(val/total*100);
 }
 
-function monthsInPeriod() { return QIDX[currentPeriod]; }
+function monthsInPeriod() {
+  if (!selectedMonths || !selectedMonths.length) return MONTH_LABELS.map(function(_,i){return i;});
+  return selectedMonths.slice().sort(function(a,b){return a-b;});
+}
 
 function periodSum(key) { return sum(D[key], monthsInPeriod()); }
 
@@ -598,7 +631,80 @@ function periodMonthData(key) { return monthsInPeriod().map(i => D[key][i]); }
 
 function periodMonthLabels() { return monthsInPeriod().map(i => MONTH_LABELS[i]); }
 
-// Period switcher removed — YTD only
+function isYTD() { return !selectedMonths || selectedMonths.length === MONTH_LABELS.length; }
+
+// Builds a readable label for whatever combination of months is selected:
+// all months -> full FY date range; a contiguous run -> "Jul 25 – Sep 25"; a
+// scattered pick -> "Jul 25, Sep 25, Apr 26".
+function periodLabel() {
+  if (isYTD()) return FY_CONFIG[currentFY].dateRange;
+  var idx = monthsInPeriod();
+  if (idx.length === 1) return MONTH_LABELS[idx[0]];
+  var contiguous = idx.every(function(v,k){ return k===0 || v === idx[k-1]+1; });
+  if (contiguous) return MONTH_LABELS[idx[0]] + ' \u2013 ' + MONTH_LABELS[idx[idx.length-1]];
+  return idx.map(function(i){ return MONTH_LABELS[i]; }).join(', ');
+}
+
+// ── MONTH FILTER ──
+function setMonths(idxArray) {
+  selectedMonths = (!idxArray || idxArray.length === 0 || idxArray.length === MONTH_LABELS.length) ? null : idxArray.slice();
+  renderPeriodControls();
+  destroyCharts();
+  renderCurrentPage();
+  setTimeout(function(){animateKPIs(null);},80);
+}
+
+function toggleMonth(i) {
+  if (!selectedMonths) {
+    // Starting from "all months" (YTD): clicking a pill narrows to just that month,
+    // rather than toggling it out of the implicit full set.
+    setMonths([i]);
+    return;
+  }
+  var has = selectedMonths.indexOf(i) !== -1;
+  var next = has ? selectedMonths.filter(function(v){return v!==i;}) : selectedMonths.concat([i]);
+  setMonths(next);
+}
+
+function setQuickPeriod(key) {
+  if (key === 'ytd') { setMonths(null); return; }
+  var cfg = FY_CONFIG[currentFY];
+  setMonths((cfg.qidx[key] || []).slice());
+}
+
+function renderPeriodControls() {
+  var pillsEl = document.getElementById('period-month-pills');
+  var resetBtn = document.getElementById('period-reset-btn');
+  var rangeLabel = document.getElementById('period-range-label');
+  var cfg = FY_CONFIG[currentFY];
+  var current = monthsInPeriod();
+
+  if (pillsEl) {
+    pillsEl.innerHTML = cfg.qidx.ytd.map(function(i) {
+      var active = current.indexOf(i) !== -1;
+      return '<button type="button" class="month-pill' + (active?' active':'') + '" ' +
+        'onclick="toggleMonth(' + i + ')" aria-pressed="' + active + '">' + MONTH_LABELS[i] + '</button>';
+    }).join('');
+  }
+
+  var qSelectEl = document.getElementById('period-quick-select');
+  if (qSelectEl) {
+    var qKeys = Object.keys(cfg.qidx).filter(function(k){ return k!=='ytd'; });
+    var opts = '<option value="ytd">Year to date</option>';
+    qKeys.forEach(function(qk) {
+      opts += '<option value="' + qk + '">' + QLABELS[qk] + '</option>';
+    });
+    qSelectEl.innerHTML = opts;
+    qSelectEl.value = 'ytd';
+  }
+
+  if (rangeLabel) {
+    rangeLabel.textContent = isYTD() ? '' : 'Showing ' + periodLabel();
+  }
+  if (resetBtn) {
+    resetBtn.style.display = isYTD() ? 'none' : 'inline-block';
+  }
+}
 
 // ══════════════════════════════════════════════
 // PAGE SWITCHER
@@ -932,7 +1038,8 @@ function renderOverview() {
   // Activity cards — parallel, not sequential
   const flowEl = document.getElementById('flow-cards');
   var headEl = document.getElementById('flow-cards-heading');
-  if (headEl) headEl.textContent = 'Care Team activity — ' + FY_CONFIG[currentFY].dateRange;
+  var periodRangeText = periodLabel();
+  if (headEl) headEl.textContent = 'Care Team activity — ' + periodRangeText;
   if (flowEl) {
     flowEl.innerHTML =
       '<div class="flow-card">' +
@@ -956,10 +1063,10 @@ function renderOverview() {
 
   var fyCfg = FY_CONFIG[currentFY];
   setKPI('kpi-overview-bot',
-    kpiCard('Response time', roundDisplay(fyCfg.avgResponse) + ' min', 'Dispatch to arrival — ' + fyCfg.dateRange) +
-    kpiCard('Call duration', roundDisplay(fyCfg.avgDuration) + ' min', 'Arrival to close — ' + fyCfg.dateRange) +
-    kpiCard('Follow-up time', roundDisplay(fyCfg.avgFollowup) + ' min', 'Per follow-up engagement — ' + fyCfg.dateRange) +
-    kpiCard('Transport time', roundDisplay(fyCfg.avgTransport) + ' min', 'Per logged transport — ' + fyCfg.dateRange)
+    kpiCard('Response time', roundDisplay(fyCfg.avgResponse) + ' min', 'Dispatch to arrival — full FYTD, ' + fyCfg.dateRange) +
+    kpiCard('Call duration', roundDisplay(fyCfg.avgDuration) + ' min', 'Arrival to close — full FYTD, ' + fyCfg.dateRange) +
+    kpiCard('Follow-up time', roundDisplay(fyCfg.avgFollowup) + ' min', 'Per follow-up engagement — full FYTD, ' + fyCfg.dateRange) +
+    kpiCard('Transport time', roundDisplay(fyCfg.avgTransport) + ' min', 'Per logged transport — full FYTD, ' + fyCfg.dateRange)
   );
 
   // Trend chart
@@ -1016,30 +1123,46 @@ function renderOverview() {
 }
 
 function renderDemographics() {
-  // For FY26: use FYTD unduplicated D_demo values
-  // For FY25: demographics not available as FYTD — use YTD periodSum from D
-  const isFY26 = currentFY === '26';
+  // True unduplicated FYTD totals from Sycamores only apply to the full year-to-date view.
+  // Any quarter or single-month filter uses periodSum of the monthly series instead,
+  // same as FY25 (which never had a true-unduplicated FYTD figure to begin with).
+  const useDemoFYTD = currentFY === '26' && isYTD();
 
-  const ageVals = isFY26
+  const ageVals = useDemoFYTD
     ? ['ageU17','age1834','age3549','age5064','age6579','age80p','ageDTS'].map(k=>D_demo[k])
     : ['ageU17','age1834','age3549','age5064','age6579','age80p','ageDTS'].map(k=>periodSum(k));
 
-  const raceVals = isFY26
+  const raceVals = useDemoFYTD
     ? ['raceWhite','raceBlack','raceHispanic','raceDTS','raceOther','raceAsian'].map(k=>D_demo[k])
     : ['raceWhite','raceBlack','raceHispanic','raceDTS','raceOther','raceAsian'].map(k=>periodSum(k));
 
-  const gMale   = isFY26 ? D_demo.genderMale   : periodSum('genderMale');
-  const gFemale = isFY26 ? D_demo.genderFemale : periodSum('genderFemale');
-  const gDTS    = isFY26 ? D_demo.genderDTS    : periodSum('genderDTS');
+  const gMale   = useDemoFYTD ? D_demo.genderMale   : periodSum('genderMale');
+  const gFemale = useDemoFYTD ? D_demo.genderFemale : periodSum('genderFemale');
+  const gDTS    = useDemoFYTD ? D_demo.genderDTS    : periodSum('genderDTS');
 
-  const housed   = isFY26 ? D_demo.housingHoused   : periodSum('housingHoused');
-  const unhoused = isFY26 ? D_demo.housingUnhoused : periodSum('housingUnhoused');
-  const dts      = isFY26 ? D_demo.housingDTS      : periodSum('housingDTS');
+  const housed   = useDemoFYTD ? D_demo.housingHoused   : periodSum('housingHoused');
+  const unhoused = useDemoFYTD ? D_demo.housingUnhoused : periodSum('housingUnhoused');
+  const dts      = useDemoFYTD ? D_demo.housingDTS      : periodSum('housingDTS');
   const total    = housed + unhoused + dts || 1;
 
   const isFY25d = currentFY === '25';
   const AX = { age: isFY25d ? 500 : 260, race: isFY25d ? 700 : 400, housing: isFY25d ? 250 : 140 };
-  const pctBase = isFY26 ? DEMO_TOTAL : total;
+  const pctBase = useDemoFYTD ? DEMO_TOTAL : total;
+
+  var demoScopeText = useDemoFYTD
+    ? 'Total by group, full FYTD unduplicated count (' + FY_CONFIG[currentFY].dateRange + ')'
+    : 'Total by group — ' + periodLabel();
+  ['age-note','race-note'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = demoScopeText;
+  });
+  var demoShareText = useDemoFYTD
+    ? 'Share of group, full FYTD unduplicated count (' + FY_CONFIG[currentFY].dateRange + ')'
+    : 'Share by group — ' + periodLabel();
+  ['gender-note','housing-note'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = demoShareText;
+  });
 
 
   drawBar('c-age',
@@ -1133,7 +1256,8 @@ function renderOutcomes() {
 
   var fyCfg = FY_CONFIG[currentFY];
   var outcomesHead = document.getElementById('outcomes-cards-heading');
-  if (outcomesHead) outcomesHead.textContent = 'Outcomes activity — ' + fyCfg.dateRange;
+  var outcomesPeriodText = periodLabel();
+  if (outcomesHead) outcomesHead.textContent = 'Outcomes activity — ' + outcomesPeriodText;
 
   var outcomesEl = document.getElementById('kpi-outcomes-top');
   if (outcomesEl) {
@@ -1248,6 +1372,7 @@ function init() {
   });
   FY_CONFIG['26'].data = D26;
   updateFYNote('26');
+  renderPeriodControls();
   renderCurrentPage();
   initExpandableKPIs();
   setTimeout(function(){animateKPIs(null);},200);
@@ -1299,7 +1424,7 @@ function updateFYNote(fy) {
   var footer = document.getElementById('dash-footer');
   if (!note) return;
   if (fy === '26') {
-    note.textContent = 'FY 2026 data covers July 2025 through March 2026 — a partial fiscal year. Totals reflect 9 of 12 months.';
+    note.textContent = 'FY 2026 data covers July 2025 through April 2026 — a partial fiscal year. Totals reflect 10 of 12 months.';
     note.classList.add('visible');
   } else {
     note.textContent = '';
@@ -1319,11 +1444,11 @@ const FY_CONFIG = {
     data: D25
   },
   '26': {
-    avgResponse: 19, avgDuration: 28, avgFollowup: 17, avgTransport: 39,
-    dateRange: 'Jul 2025–Mar 2026',
-    months: ["Jul 25", "Aug 25", "Sep 25", "Oct 25", "Nov 25", "Dec 25", "Jan 26", "Feb 26", "Mar 26"],
-    qidx: {"ytd": [0, 1, 2, 3, 4, 5, 6, 7, 8], "q1": [0, 1, 2], "q2": [3, 4, 5], "q3": [6, 7, 8]},
-    qlabels: {"ytd": "Jul 2025 \u2013 Mar 2026", "q1": "Q1: Jul \u2013 Sep 2025", "q2": "Q2: Oct \u2013 Dec 2025", "q3": "Q3: Jan \u2013 Mar 2026"},
+    avgResponse: 22.1, avgDuration: 35, avgFollowup: 16.5, avgTransport: 38.8,
+    dateRange: 'Jul 2025–Apr 2026',
+    months: ["Jul 25", "Aug 25", "Sep 25", "Oct 25", "Nov 25", "Dec 25", "Jan 26", "Feb 26", "Mar 26", "Apr 26"],
+    qidx: {"ytd": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], "q1": [0, 1, 2], "q2": [3, 4, 5], "q3": [6, 7, 8], "q4": [9]},
+    qlabels: {"ytd": "Jul 2025 \u2013 Apr 2026", "q1": "Q1: Jul \u2013 Sep 2025", "q2": "Q2: Oct \u2013 Dec 2025", "q3": "Q3: Jan \u2013 Mar 2026", "q4": "Q4 (partial): Apr 2026"},
     data: null // populated from D26 backup in init
   }
 };
@@ -1339,13 +1464,13 @@ const CALL_TIME_CONFIG = {
     dateRange: 'July 2024–June 2025'
   },
   '26': {
-    responseAvg: 19,
+    responseAvg: 22.1,
     responseMedian: 14,
-    callAvg: 28,
+    callAvg: 35,
     callMedian: 13,
-    queueAvg: 8,
+    queueAvg: 10.3,
     queueMedian: 4,
-    dateRange: 'July 2025–March 2026'
+    dateRange: 'July 2025–April 2026'
   }
 };
 
@@ -1371,12 +1496,13 @@ function switchFY(fy) {
       D[k] = src[k];
     }
   });
-  // Update month labels and period config
-  MONTH_LABELS = cfg.months;
-  QIDX = cfg.qidx;
-  QLABELS = cfg.qlabels;
+  // Update month labels and period config (copy so QIDX edits don't leak into FY_CONFIG)
+  MONTH_LABELS = cfg.months.slice();
+  QIDX = Object.assign({}, cfg.qidx);
+  QLABELS = Object.assign({}, cfg.qlabels);
   // Re-render
-  currentPeriod = 'ytd';
+  selectedMonths = null; // reset to year to date on FY switch
+  renderPeriodControls();
   destroyCharts();
   renderCurrentPage();
   setTimeout(function(){animateKPIs(null);},80);
