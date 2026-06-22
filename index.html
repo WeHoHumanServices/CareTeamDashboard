@@ -22,20 +22,22 @@
 
   /* ── PERIOD FILTER ── */
   .page-tab:focus-visible { outline: 3px solid #003087; outline-offset: -2px; }
-  .period-filter { background:#fff; border-bottom:1px solid #dce3ef; padding:10px 28px; display:flex; flex-direction:column; gap:8px; }
+  .period-filter { background:#f8faff; border-bottom:1px solid #dce3ef; padding:12px 28px; display:flex; flex-direction:column; gap:10px; }
   .period-filter-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .period-filter-row-pills { align-items:flex-start; }
-  .period-filter-label { font-size:12px; font-weight:700; color:#6b7a99; text-transform:uppercase; letter-spacing:0.6px; white-space:nowrap; }
-  .period-filter-label-pills { padding-top:6px; }
-  .period-select { font-size:13px; font-weight:700; color:#003087; background:#f0f4ff; border:1.5px solid #c5d4ec; border-radius:6px; padding:6px 10px; cursor:pointer; }
+  .period-filter-label { font-size:11px; font-weight:700; color:#6b7a99; text-transform:uppercase; letter-spacing:0.6px; white-space:nowrap; }
+  .period-filter-label-pills { padding-top:5px; }
+  .period-select { font-size:13px; font-weight:700; color:#003087; background:#fff; border:1.5px solid #c5d4ec; border-radius:6px; padding:6px 10px; cursor:pointer; }
+  .period-select option[disabled] { color:#9aa5be; }
   .period-select:focus-visible { outline:3px solid #003087; outline-offset:1px; }
-  .period-filter-range { font-size:13px; color:#6b7a99; }
+  .period-filter-range { font-size:13px; color:#3a4a6b; font-weight:600; }
   .period-reset-btn { font-size:12px; font-weight:700; color:#003087; background:#fff; border:1.5px solid #c5d4ec; border-radius:14px; padding:4px 12px; cursor:pointer; transition:all 0.15s ease; }
-  .period-reset-btn:hover { background:#f0f4ff; }
+  .period-reset-btn:hover { background:#e8eef8; }
   .month-pills { display:flex; flex-wrap:wrap; gap:6px; }
-  .month-pill { font-size:12px; font-weight:700; color:#4a5568; background:#f0f2f7; border:1.5px solid #e0e4ee; border-radius:14px; padding:5px 12px; cursor:pointer; transition:all 0.15s ease; }
-  .month-pill:hover { border-color:#a8bcdc; }
+  .month-pill { font-size:12px; font-weight:700; color:#4a5568; background:#fff; border:1.5px solid #d6deea; border-radius:14px; padding:5px 12px; cursor:pointer; transition:all 0.15s ease; }
+  .month-pill:hover { border-color:#a8bcdc; background:#f0f4ff; }
   .month-pill.active { background:#003087; color:#fff; border-color:#003087; }
+  .month-pill.active:hover { background:#002a78; }
   .month-pill:focus-visible { outline:3px solid #003087; outline-offset:1px; }
 
   /* ── PAGE NAV ── */
@@ -78,6 +80,7 @@
   .bar-label { font-size: 13px; color: #4a5568; width: 180px; flex-shrink: 0; text-align: right; line-height: 1.3; }
   .bar-track { flex: 1; background: #eef1f8; border-radius: 4px; height: 22px; overflow: hidden; }
   .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; font-size: 13px; color: #fff; font-weight: 700; transition: width 0.35s ease; min-width: 36px; }
+  .bar-empty-state { font-size: 13px; color: #9aa5be; font-style: italic; padding: 16px 0; text-align: center; }
 
   /* ── STAT TABLE ── */
   .stat-table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -138,6 +141,21 @@
 .chart-tooltip.visible { opacity:1; }
 
 .fy-badge { display:inline-block; background:#003087; color:#fff; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; margin-left:8px; vertical-align:middle; }
+
+/* ── REDUCED MOTION ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/* ── PRINT ── */
+@media print {
+  .period-filter, .page-nav, .header-right, .fy-note { display: none !important; }
+  .page { display: block !important; }
+  .page:not(.active) { display: none !important; }
+  .chart-card, .kpi, .flow-card { box-shadow: none !important; border: 1px solid #dce3ef; }
+  body { background: #fff; }
+}
+
 
 </style>
 </head>
@@ -690,12 +708,23 @@ function renderPeriodControls() {
   var qSelectEl = document.getElementById('period-quick-select');
   if (qSelectEl) {
     var qKeys = Object.keys(cfg.qidx).filter(function(k){ return k!=='ytd'; });
+    // Find which preset (if any) matches the current selection exactly, so the
+    // dropdown reflects pill-driven choices too, not just its own changes.
+    var matchedKey = 'ytd';
+    if (!isYTD()) {
+      var sameSet = function(a,b) { return a.length === b.length && a.every(function(v,k){return v===b[k];}); };
+      var found = qKeys.find(function(qk) { return sameSet(cfg.qidx[qk].slice().sort(function(x,y){return x-y;}), current); });
+      matchedKey = found || 'custom';
+    }
     var opts = '<option value="ytd">Year to date</option>';
     qKeys.forEach(function(qk) {
       opts += '<option value="' + qk + '">' + QLABELS[qk] + '</option>';
     });
+    if (matchedKey === 'custom') {
+      opts += '<option value="custom" disabled>Custom selection (' + periodLabel() + ')</option>';
+    }
     qSelectEl.innerHTML = opts;
-    qSelectEl.value = 'ytd';
+    qSelectEl.value = matchedKey;
   }
 
   if (rangeLabel) {
@@ -952,15 +981,25 @@ function drawDonut(canvasId, labels, values, colors) {
   const roundedPcts = roundedPercentages(values, total);
   let angle = -Math.PI / 2;
 
-  values.forEach((v,i) => {
-    const slice = (v/total)*Math.PI*2;
-    ctx.beginPath(); ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,r,angle,angle+slice);
-    ctx.closePath(); ctx.fillStyle=colors[i]; ctx.fill();
+  if (total === 0) {
+    // Draw an empty ring rather than a broken/invisible donut when every value is 0
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.fillStyle = '#eef1f8'; ctx.fill();
     ctx.beginPath(); ctx.arc(cx,cy,ir,0,Math.PI*2);
-    ctx.fillStyle='#fff'; ctx.fill();
-    angle += slice;
-  });
+    ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.fillStyle = '#9aa5be'; ctx.font = '12px Arial'; ctx.textAlign = 'center';
+    ctx.fillText('No data for this period', cx, cy);
+  } else {
+    values.forEach((v,i) => {
+      const slice = (v/total)*Math.PI*2;
+      ctx.beginPath(); ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,r,angle,angle+slice);
+      ctx.closePath(); ctx.fillStyle=colors[i]; ctx.fill();
+      ctx.beginPath(); ctx.arc(cx,cy,ir,0,Math.PI*2);
+      ctx.fillStyle='#fff'; ctx.fill();
+      angle += slice;
+    });
+  }
 
   // single-column centred legend below donut
   const startY = availH + 8;
@@ -1011,8 +1050,13 @@ function roundDisplay(val) { return Math.ceil(Number(val)); }
 function buildBars(containerId, items, total, fixedMax, options={}) {
   const el = document.getElementById(containerId);
   if (!el) return;
-  const maxVal = fixedMax || Math.max(...items.map(i=>i.val));
+  const rawMax = Math.max(...items.map(i=>i.val));
+  const maxVal = fixedMax || rawMax || 1; // avoid divide-by-zero when every value is 0
   const roundedPcts = (total && options.sumTo100) ? roundedPercentages(items.map(i=>i.val), total) : null;
+  if (rawMax === 0) {
+    el.innerHTML = '<div class="bar-empty-state">No activity recorded for this period.</div>';
+    return;
+  }
   el.innerHTML = items.map((item, idx) => {
     const widthPct = Math.round((item.val/maxVal)*90);
     const labelPct = total ? ((roundedPcts ? roundedPcts[idx] : Math.round(item.val/total*100)) + '%') : fmt(item.val);
@@ -1236,6 +1280,9 @@ function renderCalls() {
   if (callTimeNote) {
     callTimeNote.textContent = 'Full-year averages — ' + callTime.dateRange + '';
   }
+  var initialEngagementRow = callTime.initialEngagementAvg != null
+    ? '<tr><td>Avg time on initial engagement</td><td>' + callTime.initialEngagementAvg + ' min</td></tr>'
+    : '';
   document.getElementById('tbl-calltime').innerHTML = `
     <tr class="row-group"><td colspan="2">Arrival speed</td></tr>
     <tr><td>Avg dispatch → arrival</td><td>${callTime.responseAvg} min</td></tr>
@@ -1243,6 +1290,7 @@ function renderCalls() {
     <tr class="row-group"><td colspan="2">Time spent on calls</td></tr>
     <tr><td>Avg time on scene</td><td>${callTime.callAvg} min</td></tr>
     <tr><td>Duration per call, arrival to close — median</td><td>${callTime.callMedian} min</td></tr>
+    ${initialEngagementRow}
     <tr class="row-group"><td colspan="2">Queue wait (when team was already on a call)</td></tr>
     <tr><td>Avg queue wait</td><td>${callTime.queueAvg} min</td></tr>
     <tr><td>Wait time in queue — median</td><td>${callTime.queueMedian} min</td></tr>`;
@@ -1434,6 +1482,14 @@ function updateFYNote(fy) {
 }
 
 // ── FY SWITCHER ──
+// FY26 response/duration/follow-up/transport averages below are pulled directly from
+// the source workbook's own "Fiscal Year-to-Date" column (Summarized Data tab), not
+// computed by averaging the 10 monthly averages together — those two methods can differ
+// meaningfully (e.g. call duration: 30 from the FYTD column vs ~35 from averaging months),
+// and the FYTD column is what the City's official monthly report cites. Verified 2026-06-22
+// against WeHo_Care_Monthly_Report_April_2026.xlsx. One open item: the source FYTD column
+// gives transport time as 39 min, but the official report text cites 49 min — neither this
+// dashboard nor the source workbook can reconcile that figure; flagged for Sycamores.
 const FY_CONFIG = {
   '25': {
     avgResponse: 8.3, avgDuration: 23, avgFollowup: 21.1, avgTransport: 46,
@@ -1444,7 +1500,7 @@ const FY_CONFIG = {
     data: D25
   },
   '26': {
-    avgResponse: 22.1, avgDuration: 35, avgFollowup: 16.5, avgTransport: 38.8,
+    avgResponse: 21, avgDuration: 30, avgFollowup: 17, avgTransport: 39,
     dateRange: 'Jul 2025–Apr 2026',
     months: ["Jul 25", "Aug 25", "Sep 25", "Oct 25", "Nov 25", "Dec 25", "Jan 26", "Feb 26", "Mar 26", "Apr 26"],
     qidx: {"ytd": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], "q1": [0, 1, 2], "q2": [3, 4, 5], "q3": [6, 7, 8], "q4": [9]},
@@ -1464,12 +1520,13 @@ const CALL_TIME_CONFIG = {
     dateRange: 'July 2024–June 2025'
   },
   '26': {
-    responseAvg: 22.1,
+    responseAvg: 21,
     responseMedian: 14,
-    callAvg: 35,
-    callMedian: 13,
-    queueAvg: 10.3,
+    callAvg: 30,
+    callMedian: 12,
+    queueAvg: 10,
     queueMedian: 4,
+    initialEngagementAvg: 16,
     dateRange: 'July 2025–April 2026'
   }
 };
@@ -1514,6 +1571,10 @@ function countUp(el, target, duration) {
   var raw = String(target).replace(/,/g,'');
   var num = parseFloat(raw);
   if (isNaN(num)) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.textContent = target;
+    return;
+  }
   var startTime = null;
   function step(ts) {
     if (!startTime) startTime = ts;
