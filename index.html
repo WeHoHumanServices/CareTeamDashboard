@@ -5,164 +5,401 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>West Hollywood Care Team — Program Dashboard FY 2025–26</title>
 <style>
+  /* ═══════════════════════════════════════════════════════
+     DESIGN TOKENS  (aligned with WeHo Homeless Initiative dashboard)
+     ═══════════════════════════════════════════════════════ */
+  :root {
+    --bg:#f2f6fb;
+    --card:#ffffff;
+    --ink:#18314f;
+    --heading:#0d2444;
+    --body:#2a3f5c;
+    --muted:#5f7088;
+    --line:#d8e3f0;
+    --line-soft:#eef2f9;
+    --blue:#003087;
+    --blue2:#1c6ccf;
+    --blue3:#5B9BD5;
+    --blue4:#9ec4e7;
+    --blue5:#d7e7f7;
+    --accent:#0e8ecf;
+    --radius:12px;
+    --shadow-1:0 1px 6px rgba(0,30,90,.07);
+    --shadow-2:0 4px 16px rgba(0,30,90,.12);
+    --maxw:1360px;
+  }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, Helvetica, sans-serif; background: #f4f6f9; color: #1a1a2e; font-size: 16px; }
+  * { overflow-wrap: break-word; word-break: normal; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
 
   /* ── HEADER ── */
-  .header { background: #003087; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-  .header-title { color: #fff; font-size: 18px; font-weight: 700; }
-  .header-sub { color: rgba(255,255,255,0.88); font-size: 13px; margin-top: 2px; }
-  .header-right { display:flex; align-items:center; gap:10px; flex-shrink: 0; }
-  .fy-label { font-size:12px; color:rgba(255,255,255,0.8); font-weight:700; }
-  .fy-btn { font-size:12px; font-weight:700; padding:6px 14px; border-radius:20px; border:2px solid rgba(255,255,255,0.55); background:transparent; color:#fff; cursor:pointer; transition:all 0.15s ease; }
-  .fy-btn.active { background:#fff; color:#003087; border-color:#fff; }
-  .header-divider { height:1px; background:#dce3ef; }
-  .fy-note { font-size:13px; font-weight:600; color:#003087; background:#e8eef8; border-left:4px solid #003087; padding:8px 18px; display:none; }
+  .header {
+    background:
+      radial-gradient(circle at top right, rgba(255,255,255,.10), transparent 38%),
+      linear-gradient(135deg, #001f52 0%, #003087 55%, #0a4fc0 100%);
+    padding: 16px 28px 15px;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    box-shadow: 0 4px 16px rgba(0,20,80,.22);
+  }
+  .header-inner {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .header-title { color: #fff; font-size: clamp(17px,2.1vw,22px); font-weight: 800; letter-spacing: .1px; line-height: 1.2; }
+  .header-sub { color: rgba(255,255,255,0.74); font-size: 13px; margin-top: 3px; line-height: 1.45; }
+  .header-right { display:flex; align-items:center; gap:8px; flex-shrink: 0; }
+  .fy-label { font-size:10.5px; color:rgba(255,255,255,0.62); font-weight:700; text-transform:uppercase; letter-spacing:.8px; }
+  .fy-btn {
+    font-size:12px; font-weight:700; padding:6px 15px; border-radius:999px;
+    border:1.5px solid rgba(255,255,255,0.42); background:rgba(255,255,255,.06); color:#fff;
+    cursor:pointer; transition:all .16s ease; font-family:inherit;
+  }
+  .fy-btn:hover { background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.7); }
+  .fy-btn.active { background:#fff; color:var(--blue); border-color:#fff; box-shadow:0 2px 10px rgba(0,0,0,.16); }
+  .fy-btn:focus-visible { outline:3px solid rgba(255,255,255,.7); outline-offset:2px; }
+  .header-divider { display:none; }
+
+  .fy-note { font-size:13px; font-weight:600; color:var(--blue); background:#e8eef8; border-bottom:1px solid #d3ddee; padding:0; display:none; }
   .fy-note.visible { display:block; }
+  .fy-note .bar-inner { max-width:var(--maxw); margin:0 auto; padding:9px 28px; border-left:4px solid var(--blue); }
 
   /* ── PERIOD FILTER ── */
-  .page-tab:focus-visible { outline: 3px solid #003087; outline-offset: -2px; }
-  .period-filter { background:#f8faff; border-bottom:1px solid #dce3ef; padding:12px 28px; display:flex; flex-direction:column; gap:10px; }
+  .period-filter {
+    background: rgba(248,250,255,.96);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    padding: 0;
+  }
+  .period-filter-inner {
+    max-width: var(--maxw); margin: 0 auto; padding: 11px 28px;
+    display: flex; flex-direction: column; gap: 9px;
+  }
   .period-filter-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .period-filter-row-pills { align-items:flex-start; }
-  .period-filter-label { font-size:11px; font-weight:700; color:#6b7a99; text-transform:uppercase; letter-spacing:0.6px; white-space:nowrap; }
-  .period-filter-label-pills { padding-top:5px; }
-  .period-select { font-size:13px; font-weight:700; color:#003087; background:#fff; border:1.5px solid #c5d4ec; border-radius:6px; padding:6px 10px; cursor:pointer; }
+  .period-filter-label { font-size:10.5px; font-weight:700; color:#7a90b0; text-transform:uppercase; letter-spacing:0.8px; white-space:nowrap; }
+  .period-filter-label-pills { padding-top:6px; }
+  .period-select {
+    font-size:13px; font-weight:700; color:var(--blue); background:#fff;
+    border:1.5px solid #c8d7ee; border-radius:10px; padding:6px 11px; cursor:pointer;
+    font-family:inherit; box-shadow:0 1px 3px rgba(0,30,90,.06); transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .period-select:hover { border-color:#a8c0e0; box-shadow:0 2px 8px rgba(0,48,135,.10); }
   .period-select option[disabled] { color:#9aa5be; }
-  .period-select:focus-visible { outline:3px solid #003087; outline-offset:1px; }
+  .period-select:focus-visible { outline:3px solid var(--blue); outline-offset:1px; }
   .period-filter-range { font-size:13px; color:#3a4a6b; font-weight:600; }
-  .period-reset-btn { font-size:12px; font-weight:700; color:#003087; background:#fff; border:1.5px solid #c5d4ec; border-radius:14px; padding:4px 12px; cursor:pointer; transition:all 0.15s ease; }
-  .period-reset-btn:hover { background:#e8eef8; }
+  .period-reset-btn {
+    font-size:12px; font-weight:700; color:var(--blue); background:#fff;
+    border:1.5px solid #c8d7ee; border-radius:999px; padding:5px 13px; cursor:pointer;
+    transition:all .15s ease; font-family:inherit; box-shadow:0 1px 3px rgba(0,30,90,.06);
+  }
+  .period-reset-btn:hover { background:#eef4ff; border-color:#a8c0e0; box-shadow:0 2px 8px rgba(0,48,135,.10); }
   .month-pills { display:flex; flex-wrap:wrap; gap:6px; }
-  .month-pill { font-size:12px; font-weight:700; color:#4a5568; background:#fff; border:1.5px solid #d6deea; border-radius:14px; padding:5px 12px; cursor:pointer; transition:all 0.15s ease; }
-  .month-pill:hover { border-color:#a8bcdc; background:#f0f4ff; }
-  .month-pill.active { background:#003087; color:#fff; border-color:#003087; }
-  .month-pill.active:hover { background:#002a78; }
-  .month-pill:focus-visible { outline:3px solid #003087; outline-offset:1px; }
+  .month-pill {
+    font-size:12px; font-weight:700; color:#3a4f6a; background:#fff;
+    border:1.5px solid var(--line); border-radius:999px; padding:5px 13px; cursor:pointer;
+    transition:all .15s ease; font-family:inherit; box-shadow:0 1px 3px rgba(0,30,90,.06);
+  }
+  .month-pill:hover { border-color:#a8c0e0; background:#f0f5ff; color:var(--blue); transform:translateY(-1px); box-shadow:0 2px 8px rgba(0,48,135,.12); }
+  .month-pill.active { background:var(--blue); color:#fff; border-color:var(--blue); box-shadow:0 3px 12px rgba(0,48,135,.28); transform:none; }
+  .month-pill.active:hover { background:#002a78; transform:none; }
+  .month-pill:focus-visible { outline:3px solid var(--blue); outline-offset:1px; }
+  .month-pill:active { transform:scale(.97); }
 
-  /* ── PAGE NAV ── */
-  .page-nav { background: #fff; border-bottom: 1px solid #dce3ef; padding: 0 28px; display: flex; gap: 0; }
-  .page-tab { padding: 12px 20px; font-size: 15px; font-weight: 700; color: #6b7a99; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.15s; }
-  .page-tab:hover { color: #003087; background: #f8faff; }
-  .page-tab.active { color: #003087; border-bottom-color: #003087; }
+  /* ── PAGE NAV (pill tabs, HI-style) ── */
+  .page-nav {
+    background: rgba(244,248,252,.98);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(210,224,240,.9);
+    box-shadow: 0 2px 8px rgba(0,30,90,.05);
+    padding: 0;
+    display: block;
+  }
+  .page-nav-inner {
+    max-width: var(--maxw); margin: 0 auto; padding: 9px 28px;
+    display: flex; flex-wrap: wrap; gap: 7px;
+  }
+  .page-tab {
+    border:1.5px solid var(--line); background:#fff; color:#3a4f6a;
+    border-radius: var(--radius); padding: 8px 16px;
+    font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
+    letter-spacing: .15px; box-shadow: 0 1px 3px rgba(0,30,90,.07);
+    transition: background .14s ease, color .14s ease, border-color .14s ease, box-shadow .14s ease, transform .12s ease;
+  }
+  .page-tab:hover { background:#f0f5ff; color:var(--blue); border-color:#a8c0e0; box-shadow:0 2px 8px rgba(0,48,135,.12); transform:translateY(-1px); }
+  .page-tab.active { background:var(--blue); color:#fff; border-color:var(--blue); box-shadow:0 3px 12px rgba(0,48,135,.28); transform:none; }
+  .page-tab.active:hover { background:var(--blue); transform:none; }
+  .page-tab:active { transform:scale(.98); }
+  .page-tab:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
 
-  /* ── PAGE CONTEXT BANNER ── */
-  .page-context { background: #f0f4ff; border-left: 4px solid #003087; border-radius: 0 6px 6px 0; padding: 10px 16px; margin-bottom: 18px; font-size: 14px; color: #3a4a6b; line-height: 1.6; }
+  /* ── PAGE CONTEXT BANNER (HI "hero" card) ── */
+  .page-context {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-left: 5px solid var(--blue);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-1);
+    padding: 13px 17px;
+    margin-bottom: 16px;
+    font-size: 13.5px;
+    color: var(--body);
+    line-height: 1.62;
+  }
 
   /* ── LAYOUT ── */
-  .content { padding: 18px 28px 8px; }
+  .content { max-width: var(--maxw); margin: 0 auto; padding: 20px 28px 8px; }
   .page { display: none; }
-  .page.active { display: block; }
+  .page.active { display: block; animation: pageIn .28s ease both; }
+  @keyframes pageIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
 
   /* ── KPI CARDS ── */
-  .kpi-row { display: grid; gap: 10px; margin-bottom: 14px; }
+  .kpi-row { display: grid; gap: 12px; margin-bottom: 16px; }
   .kpi-4 { grid-template-columns: repeat(4, 1fr); }
   .kpi-3 { grid-template-columns: repeat(3, 1fr); }
   .kpi-2 { grid-template-columns: repeat(2, 1fr); }
-  .kpi { background: #fff; border-radius: 8px; padding: 16px 18px; border-top: 3px solid #003087; box-shadow: 0 1px 4px rgba(0,0,135,0.06); }
-  .kpi-label { font-size: 12px; color: #6b7a99; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
-  .kpi-value { font-size: 32px; font-weight: 700; color: #003087; line-height: 1; }
-  .kpi-sub { font-size: 13px; color: #9aa5be; margin-top: 5px; }
-  .kpi-sm .kpi-value { font-size: 26px; }
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 16px 14px;
+    box-shadow: var(--shadow-1);
+    position: relative;
+    overflow: hidden;
+    min-width: 0;
+    transition: box-shadow .18s ease, transform .18s ease;
+  }
+  .kpi::before {
+    content:""; position:absolute; inset:0 auto auto 0;
+    height:3px; width:100%;
+    background: linear-gradient(90deg, var(--blue), var(--blue3));
+  }
+  .kpi-row > .kpi:nth-child(2)::before { background: linear-gradient(90deg, var(--blue2), var(--accent)); }
+  .kpi-row > .kpi:nth-child(3)::before { background: linear-gradient(90deg, var(--blue3), var(--blue4)); }
+  .kpi-row > .kpi:nth-child(4)::before { background: linear-gradient(90deg, var(--accent), var(--blue4)); }
+  .kpi:hover { box-shadow: var(--shadow-2); }
+  .kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.7px; font-weight: 700; margin-bottom: 7px; }
+  .kpi-value { font-size: clamp(24px,3vw,32px); font-weight: 800; color: var(--blue); line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kpi-sub { font-size: 12.5px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+  .kpi-sm .kpi-value { font-size: clamp(22px,2.6vw,27px); }
 
-  /* ── CHART GRID ── */
-  .chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 14px; }
-  .chart-card { background: #fff; border-radius: 8px; padding: 16px 18px; box-shadow: 0 1px 4px rgba(0,0,135,0.06); overflow: hidden; }
+  /* expandable KPI detail */
+  .kpi[data-expand] { cursor: pointer; }
+  .kpi[data-expand]:hover { box-shadow: 0 5px 18px rgba(0,48,135,.13); transform: translateY(-1px); }
+  .kpi[data-expand] .kpi-sub::after {
+    content:' \25BE'; font-size:10px; color:var(--blue3); margin-left:4px;
+    display:inline-block; transition:transform .25s ease;
+  }
+  .kpi-expanded .kpi-sub::after { transform: rotate(180deg); }
+  .kpi-detail {
+    max-height: 0; overflow: hidden; opacity: 0;
+    font-size: 12.5px; color: #445870; line-height: 1.6;
+    border-top: 1px solid transparent;
+    padding-top: 0; margin-top: 0;
+    transition: max-height .38s ease, opacity .28s ease, padding-top .28s ease, margin-top .28s ease;
+  }
+  .kpi-expanded .kpi-detail { border-top-color: var(--line-soft); margin-top: 9px; }
+  .kpi-expanded { box-shadow: 0 6px 22px rgba(0,48,135,.13) !important; transform: translateY(-1px); }
+
+  /* ── CHART GRID / CARDS ── */
+  .chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 16px; }
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 18px 18px;
+    box-shadow: var(--shadow-1);
+    overflow: hidden;
+    min-width: 0;
+    transition: box-shadow .18s ease;
+  }
+  .chart-card:hover { box-shadow: var(--shadow-2); }
   .chart-card.full { grid-column: span 2; }
-  .chart-title { font-size: 15px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
-  .chart-note { font-size: 13px; color: #9aa5be; margin-bottom: 12px; }
-  .chart-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; font-size: 13px; color: #6b7a99; align-items: center; }
-  .legend-swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-right: 4px; vertical-align: middle; }
+  .chart-title { font-size: 15px; font-weight: 800; color: var(--heading); margin-bottom: 4px; letter-spacing: .1px; }
+  .chart-note { font-size: 12.5px; color: var(--muted); margin-bottom: 13px; line-height: 1.5; }
+  .chart-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 11px; font-size: 12px; color: var(--muted); align-items: center; font-weight: 600; }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; margin-right: 5px; vertical-align: middle; }
   canvas { display: block; max-width: 100%; }
 
   /* ── BAR ROWS ── */
-  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
-  .bar-label { font-size: 13px; color: #4a5568; width: 180px; flex-shrink: 0; text-align: right; line-height: 1.3; }
-  .bar-track { flex: 1; background: #eef1f8; border-radius: 4px; height: 22px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; font-size: 13px; color: #fff; font-weight: 700; transition: width 0.35s ease; min-width: 36px; }
-  .bar-empty-state { font-size: 13px; color: #9aa5be; font-style: italic; padding: 16px 0; text-align: center; }
+  .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .bar-row:last-child { margin-bottom: 2px; }
+  .bar-label { font-size: 12.5px; color: #324760; width: 180px; flex-shrink: 0; text-align: right; line-height: 1.35; }
+  .bar-track { flex: 1; background: #edf3fa; border-radius: 999px; height: 24px; overflow: hidden; min-width: 0; }
+  .bar-fill {
+    height: 100%; border-radius: 999px;
+    transition: width .5s cubic-bezier(.22,.61,.36,1); min-width: 4px;
+    box-shadow: inset 0 -1px 0 rgba(0,0,0,.06);
+  }
+  .bar-value {
+    flex-shrink: 0; min-width: 46px; text-align: right;
+    font-size: 12.5px; font-weight: 800; color: var(--blue);
+    font-variant-numeric: tabular-nums; letter-spacing: .1px;
+  }
+  .bar-empty-state { font-size: 13px; color: var(--muted); font-style: italic; padding: 18px 0; text-align: center; }
 
   /* ── STAT TABLE ── */
-  .stat-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  .stat-table td { padding: 8px 8px; border-bottom: 1px solid #eef1f8; color: #1a1a2e; line-height: 1.4; }
-  .stat-table td:first-child { color: #4a5568; }
-  .stat-table td:last-child { text-align: right; font-weight: 700; color: #003087; white-space: nowrap; }
+  .stat-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .stat-table td { padding: 9px 10px; border-bottom: 1px solid var(--line-soft); color: var(--ink); line-height: 1.45; }
+  .stat-table tr:hover td { background: #fafcff; }
+  .stat-table td:first-child { color: #3a4f6a; }
+  .stat-table td:last-child { text-align: right; font-weight: 800; color: var(--blue); white-space: nowrap; font-variant-numeric: tabular-nums; }
   .stat-table tr:last-child td { border-bottom: none; }
-  .stat-table .row-indent td:first-child { color: #9aa5be; padding-left: 20px; font-size: 13px; }
-  .stat-table .row-indent td:last-child { color: #6b7a99; font-size: 13px; }
-  .stat-table .row-group td { background: #f8faff; font-weight: 700; font-size: 13px; color: #003087; padding-top: 10px; border-bottom: none; }
+  .stat-table .row-indent td:first-child { color: var(--muted); padding-left: 22px; font-size: 12.5px; }
+  .stat-table .row-indent td:last-child { color: var(--muted); font-size: 12.5px; font-weight: 700; }
+  .stat-table .row-group td { background: #f2f7ff; font-weight: 800; font-size: 11.5px; color: var(--blue); text-transform: uppercase; letter-spacing: .6px; padding-top: 11px; border-bottom: none; }
+  .stat-table .row-group:hover td { background: #f2f7ff; }
 
   /* ── SECTION NOTE ── */
-  .section-note { font-size: 13px; color: #9aa5be; font-style: italic; margin: -12px 0 14px; }
+  .section-note { font-size: 12.5px; color: var(--muted); font-style: italic; margin: -10px 0 16px; }
 
   /* ── HALF GRID ── */
-  .half-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 14px; }
+  .half-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; margin-bottom: 16px; }
+
+  /* ── FLOW CARDS ── */
+  .flow-cards-wrap { margin-bottom: 20px; }
+  .flow-cards-heading {
+    font-size: 11px; font-weight: 700; color: #7a90b0; text-transform: uppercase;
+    letter-spacing: 0.9px; margin-bottom: 11px; display: flex; align-items: center; gap: 10px;
+  }
+  .flow-cards-heading::after { content:''; flex:1; height:1px; background: var(--line); }
+  .flow-cards { display: flex; align-items: stretch; gap: 14px; }
+  .flow-card {
+    flex: 1; min-width: 0;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 20px 16px;
+    box-shadow: var(--shadow-1);
+    position: relative; overflow: hidden;
+    transition: box-shadow .18s ease, transform .18s ease;
+  }
+  .flow-card::before {
+    content:""; position:absolute; inset:0 auto auto 0;
+    height:3px; width:100%;
+    background: linear-gradient(90deg, var(--blue), var(--blue3));
+  }
+  .flow-cards > .flow-card:nth-child(2)::before { background: linear-gradient(90deg, var(--blue2), var(--accent)); }
+  .flow-cards > .flow-card:nth-child(3)::before { background: linear-gradient(90deg, var(--blue3), var(--blue4)); }
+  .flow-cards > .flow-card:nth-child(4)::before { background: linear-gradient(90deg, var(--accent), var(--blue4)); }
+  .flow-card:hover { box-shadow: var(--shadow-2); transform: translateY(-1px); }
+  .flow-card-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.7px; font-weight: 700; margin-bottom: 7px; }
+  .flow-card-value { font-size: clamp(28px,3.4vw,36px); font-weight: 800; color: var(--blue); line-height: 1; white-space: nowrap; }
+  .flow-card-sub { font-size: 12.5px; color: var(--muted); margin-top: 7px; line-height: 1.5; }
+  .flow-cards-note { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 10px; line-height: 1.5; }
 
   /* ── FOOTER ── */
-  .dash-footer { margin-top: 12px; padding: 14px 0 4px; border-top: 1px solid #dce3ef; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #9aa5be; }
+  .dash-footer {
+    max-width: var(--maxw); margin: 26px auto 0; padding: 14px 0 18px;
+    border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+    font-size: 12px; color: var(--muted); letter-spacing: .1px; line-height: 1.5;
+  }
 
+  /* ── TOOLTIP ── */
+  .chart-tooltip {
+    position: fixed;
+    background: rgba(17,28,45,.96);
+    color: #fff;
+    font-family: inherit;
+    font-size: 12px; line-height: 1.45;
+    padding: 8px 12px;
+    border-radius: 8px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity .13s ease, transform .13s ease;
+    z-index: 9999;
+    white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(0,0,0,.22);
+    max-width: min(280px, calc(100vw - 24px));
+  }
+  .chart-tooltip.visible { opacity: 1; transform: translateY(0); }
+
+  .fy-badge {
+    display:inline-block; background: var(--blue5); color: var(--blue);
+    font-size:10.5px; font-weight:800; padding:3px 9px; border-radius:999px;
+    margin-left:8px; vertical-align:middle; text-transform:uppercase; letter-spacing:.5px;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { height: 9px; width: 9px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #c8d7ee; border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #a8c0e0; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1100px) {
+    .kpi-4 { grid-template-columns: repeat(2,1fr); }
+  }
   @media (max-width: 900px) {
+    .header { position: relative; }
     .kpi-4, .kpi-3 { grid-template-columns: repeat(2,1fr); }
     .chart-grid, .half-grid { grid-template-columns: 1fr; }
     .chart-card.full { grid-column: span 1; }
-    .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .header-inner { flex-direction: column; align-items: flex-start; gap: 12px; }
     .header-right { text-align: left; }
     .bar-label { width: 130px; }
-    .period-filter { padding: 10px 16px; }
+    .period-filter-inner, .page-nav-inner { padding: 10px 16px; }
+    .fy-note .bar-inner { padding: 9px 16px; }
+    .content { padding: 16px 16px 8px; }
+  }
+  @media (max-width: 700px) {
+    .flow-cards { flex-direction: column; }
   }
   @media (max-width: 520px) {
-    .kpi-4, .kpi-3 { grid-template-columns: 1fr; }
+    .kpi-4, .kpi-3, .kpi-2 { grid-template-columns: 1fr; }
     .kpi-value { font-size: 26px; }
-    .page-nav { overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; padding: 0 12px; }
-    .page-tab { padding: 10px 14px; font-size: 13px; display: inline-block; }
-    .content { padding: 12px; }
-    .bar-label { width: 100px; font-size: 11px; }
-    .bar-fill { font-size: 11px; }
-    .header-fy { font-size: 13px; }
+    .page-nav-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 8px 12px; }
+    .page-tab { padding: 9px 10px; font-size: 12px; text-align: center; white-space: normal; }
+    .content { padding: 14px 12px 8px; }
+    .bar-label { width: 96px; font-size: 11.5px; }
+    .bar-value { min-width: 38px; font-size: 11.5px; }
+    .bar-track { height: 22px; }
+    .header-title { font-size: clamp(17px,5.2vw,21px); }
+    .header-sub { font-size: 12px; }
+    .chart-card { padding: 14px; }
+    .page-context { font-size: 13px; padding: 12px 14px; }
   }
 
-/* ── FLOW CARDS ── */
-.flow-cards-wrap { margin-bottom:18px; }
-.flow-cards-heading { font-size:12px; font-weight:700; color:#6b7a99; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
-.flow-cards-heading::after { content:''; flex:1; height:1px; background:#dce3ef; }
-.flow-cards { display:flex; align-items:stretch; gap:12px; }
-.flow-card { flex:1; background:#fff; border-radius:8px; padding:18px 20px; border-top:3px solid #003087; box-shadow:0 1px 4px rgba(0,0,135,0.06); }
-.flow-card-label { font-size:12px; color:#6b7a99; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:6px; }
-.flow-card-value { font-size:36px; font-weight:700; color:#003087; line-height:1; }
-.flow-card-sub { font-size:13px; color:#5a6a88; margin-top:6px; line-height:1.5; }
-.flow-cards-note { font-size:12px; color:#9aa5be; font-style:italic; margin-top:8px; }
-@media(max-width:700px){
-  .flow-cards{flex-direction:column;}
-  .flow-card-value{font-size:28px;}
-}
+  /* ── REDUCED MOTION ── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+    html { scroll-behavior: auto; }
+  }
 
-/* ── TOOLTIP ── */
-.chart-tooltip { position:fixed; background:#1a1a2e; color:#fff; font-family:Arial,Helvetica,sans-serif; font-size:12px; padding:7px 11px; border-radius:6px; pointer-events:none; opacity:0; transition:opacity 0.15s; z-index:9999; white-space:nowrap; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
-.chart-tooltip.visible { opacity:1; }
-
-.fy-badge { display:inline-block; background:#003087; color:#fff; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; margin-left:8px; vertical-align:middle; }
-
-/* ── REDUCED MOTION ── */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
-}
-
-/* ── PRINT ── */
-@media print {
-  .period-filter, .page-nav, .header-right, .fy-note { display: none !important; }
-  .page { display: block !important; }
-  .page:not(.active) { display: none !important; }
-  .chart-card, .kpi, .flow-card { box-shadow: none !important; border: 1px solid #dce3ef; }
-  body { background: #fff; }
-}
-
-
+  /* ── PRINT ── */
+  @media print {
+    .period-filter, .page-nav, .header-right, .fy-note { display: none !important; }
+    .header { position: static; background: #003087 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { display: block !important; }
+    .page:not(.active) { display: none !important; }
+    .page.active { animation: none; }
+    .chart-card, .kpi, .flow-card, .page-context { box-shadow: none !important; border: 1px solid #dce3ef; }
+    .chart-card:hover, .kpi:hover, .flow-card:hover { transform: none; }
+    body { background: #fff; }
+  }
 </style>
 </head>
 <body>
 
 <!-- HEADER -->
 <div class="header">
+ <div class="header-inner">
   <div>
     <div class="header-title">West Hollywood Care Team</div>
     <div class="header-sub">FY 2025–2026 Program Performance Dashboard</div>
@@ -172,12 +409,14 @@
     <button id="btn-fy25" class="fy-btn" onclick="switchFY('25')">FY 2025</button>
     <button id="btn-fy26" class="fy-btn active" onclick="switchFY('26')">FY 2026</button>
   </div>
+ </div>
 </div>
 <div class="header-divider"></div>
-<div class="fy-note" id="fy-context-note"></div>
+<div class="fy-note" id="fy-note-wrap"><div class="bar-inner" id="fy-context-note"></div></div>
 
 <!-- PERIOD FILTER -->
 <div class="period-filter">
+ <div class="period-filter-inner">
   <div class="period-filter-row">
     <span class="period-filter-label">View</span>
     <select id="period-quick-select" class="period-select" onchange="setQuickPeriod(this.value)" aria-label="Quick-select a year-to-date or quarter view"></select>
@@ -188,14 +427,17 @@
     <span class="period-filter-label period-filter-label-pills">Or pick months</span>
     <div class="month-pills" id="period-month-pills"></div>
   </div>
+ </div>
 </div>
 
 <!-- PAGE NAV -->
 <div class="page-nav">
+ <div class="page-nav-inner">
   <div class="page-tab active" role="tab" aria-selected="true" aria-controls="page-overview" tabindex="0" onclick="showPage('overview',this)" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('overview',this)">Overview</div>
   <div class="page-tab" role="tab" aria-selected="false" aria-controls="page-demographics" tabindex="0" onclick="showPage('demographics',this)" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('demographics',this)">Demographics</div>
   <div class="page-tab" role="tab" aria-selected="false" aria-controls="page-calls" tabindex="0" onclick="showPage('calls',this)" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('calls',this)">Call Analysis</div>
   <div class="page-tab" role="tab" aria-selected="false" aria-controls="page-outcomes" tabindex="0" onclick="showPage('outcomes',this)" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('outcomes',this)">Outcomes</div>
+ </div>
 </div>
 
 <!-- ═══════════════════════════════════════════
@@ -785,13 +1027,70 @@ function destroyCharts() {
 const B1='#003087', B2='#5B9BD5', B3='#8FBBDB', B4='#B8D4EA', B5='#D4E8F4';
 const PALETTE = [B1,B2,B3,B4,B5,'#cfe0f0','#e6f0f8','#f0f6fb'];
 
-function setupCanvas(canvas) {
+// ── shared text metrics + label helpers ──────────────────
+const CFONT = "-apple-system, system-ui, Roboto, sans-serif";
+function cfont(px, bold) { return (bold ? 'bold ' : '') + px + 'px ' + CFONT; }
+const _mctx = document.createElement('canvas').getContext('2d');
+function textW(t, px, bold) { _mctx.font = cfont(px, bold); return _mctx.measureText(String(t)).width; }
+
+// available drawing width inside a chart card, without touching the canvas
+function availWidth(canvas) {
   const parent = canvas.parentElement;
   const style = window.getComputedStyle(parent);
   const padL = parseFloat(style.paddingLeft) || 0;
   const padR = parseFloat(style.paddingRight) || 0;
-  const W = Math.max((parent.clientWidth - padL - padR), 200);
-  const H = parseInt(canvas.getAttribute('height')) || 220;
+  return Math.max((parent.clientWidth - padL - padR), 200);
+}
+
+// wrap a label to maxW, honouring existing \n, then ellipsise any word that
+// still cannot fit so text can never spill past its slot
+function wrapLabel(label, maxW, px) {
+  const out = [];
+  String(label).split('\n').forEach(part => {
+    const words = part.split(' ');
+    let line = '';
+    words.forEach(w => {
+      const test = line ? line + ' ' + w : w;
+      if (line && textW(test, px) > maxW) { out.push(line); line = w; }
+      else line = test;
+    });
+    if (line) out.push(line);
+  });
+  return (out.length ? out : ['']).map(l => ellipsise(l, maxW, px));
+}
+
+function ellipsise(t, maxW, px) {
+  let s = String(t);
+  if (textW(s, px) <= maxW) return s;
+  while (s.length > 1 && textW(s + '…', px) > maxW) s = s.slice(0, -1);
+  return s + '…';
+}
+
+// draw centred text but keep its box inside [0, W]
+function drawClamped(ctx, text, cx, y, W, px) {
+  const w = textW(text, px);
+  if (cx - w / 2 < 1) { ctx.textAlign = 'left'; ctx.fillText(text, 1, y); }
+  else if (cx + w / 2 > W - 1) { ctx.textAlign = 'right'; ctx.fillText(text, W - 1, y); }
+  else { ctx.textAlign = 'center'; ctx.fillText(text, cx, y); }
+}
+
+// widest y-axis tick label -> left padding that always clears it
+function axisLeftPad(max, minPad) {
+  let w = 0;
+  for (let t = 0; t <= 4; t++) w = Math.max(w, textW(Math.round((t / 4) * max), 12));
+  return Math.max(minPad || 0, Math.ceil(w) + 11);
+}
+
+// keep every Nth label when they would otherwise collide
+function labelStride(labels, slotW, px) {
+  const widest = Math.max(...labels.map(l => textW(String(l).replace('\n', ' '), px)));
+  return Math.max(1, Math.ceil((widest + 8) / Math.max(slotW, 1)));
+}
+
+function setupCanvas(canvas, minH) {
+  const W = availWidth(canvas);
+  const baseH = parseInt(canvas.getAttribute('height')) || 220;
+  const H = Math.max(baseH, Math.ceil(minH || 0));
   canvas.width = W;
   canvas.height = H;
   canvas.style.width = W + 'px';
@@ -802,24 +1101,68 @@ function setupCanvas(canvas) {
 function drawBar(canvasId, labels, values, colors, opts={}) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
-  const { ctx, W, H } = setupCanvas(canvas);
-  const pad = { top:10, right:16, bottom: opts.rotateLabels?52:28, left: opts.leftPad||40 };
-  const chartW = W - pad.left - pad.right;
-  const chartH = H - pad.top - pad.bottom;
+
   const max = opts.axisMax || Math.max(...values, 1);
   const n = labels.length;
-  const groupW = chartW / n;
-  const barW = Math.min(groupW * 0.6, opts.maxBarW||50);
+  const W0 = availWidth(canvas);
+  const padRight = 16;
+  const padTop = opts.showPct ? 22 : 10;          // headroom for % labels above bars
+  const rotate = !!opts.rotateLabels;
+
+  // ── plan the x-axis labels before sizing the canvas ──
+  let padLeft = axisLeftPad(max, opts.leftPad || 40);
+  let groupW = (W0 - padLeft - padRight) / n;
+  let lblPx = 12, lines = null, stride = 1, bottomPad;
+
+  if (rotate) {
+    const plain = labels.map(l => String(l).replace('\n', ' '));
+    let widest = Math.max(...plain.map(l => textW(l, lblPx)));
+    while (lblPx > 9 && widest * 0.7071 > 52) {
+      lblPx -= 1;
+      widest = Math.max(...plain.map(l => textW(l, lblPx)));
+    }
+    bottomPad = Math.ceil(widest * 0.7071) + 16;
+    // a right-anchored 45° label reaches left of its tick — make room for it
+    const reach = Math.ceil(textW(plain[0], lblPx) * 0.7071);
+    padLeft = Math.max(padLeft, reach + 2);
+    groupW = (W0 - padLeft - padRight) / n;
+  } else {
+    const fit = () => {
+      lines = labels.map(l => wrapLabel(l, Math.max(groupW - 4, 28), lblPx));
+      return Math.max(...lines.map(a => a.length));
+    };
+    let maxLines = fit();
+    while (lblPx > 9 && maxLines > 2) { lblPx -= 1; maxLines = fit(); }
+    stride = maxLines > 1 ? 1 : labelStride(labels, groupW, lblPx);
+    bottomPad = 10 + maxLines * (lblPx + 3);
+  }
+
+  // grow the canvas if the labels need more room than the default gutter
+  const defaultBottom = rotate ? 52 : 28;
+  const baseH = parseInt(canvas.getAttribute('height')) || 220;
+  const needH = baseH - 10 - defaultBottom + padTop + bottomPad;
+
+  const { ctx, W, H } = setupCanvas(canvas, needH);
+  padLeft = rotate ? padLeft : axisLeftPad(max, opts.leftPad || 40);
+  if (rotate) {
+    const reach = Math.ceil(textW(String(labels[0]).replace('\n', ' '), lblPx) * 0.7071);
+    padLeft = Math.max(axisLeftPad(max, opts.leftPad || 40), reach + 2);
+  }
+  const pad = { top: padTop, right: padRight, bottom: bottomPad, left: padLeft };
+  const chartW = W - pad.left - pad.right;
+  const chartH = H - pad.top - pad.bottom;
+  groupW = chartW / n;
+  const barW = Math.min(groupW * 0.6, opts.maxBarW || 50);
 
   // Y gridlines
   ctx.strokeStyle = '#eef1f8';
   ctx.lineWidth = 1;
   const ticks = 4;
-  for (let t=0; t<=ticks; t++) {
-    const y = pad.top + chartH - (t/ticks)*chartH;
-    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left+chartW, y); ctx.stroke();
-    ctx.fillStyle='#9aa5be'; ctx.font='12px Arial'; ctx.textAlign='right';
-    ctx.fillText(Math.round((t/ticks)*max), pad.left-6, y+3);
+  for (let t = 0; t <= ticks; t++) {
+    const y = pad.top + chartH - (t / ticks) * chartH;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + chartW, y); ctx.stroke();
+    ctx.fillStyle = '#7a8aa0'; ctx.font = cfont(12); ctx.textAlign = 'right';
+    ctx.fillText(Math.round((t / ticks) * max), pad.left - 7, y + 4);
   }
 
   // Bars
@@ -832,37 +1175,37 @@ function drawBar(canvasId, labels, values, colors, opts={}) {
     ctx.fillStyle = Array.isArray(colors) ? (colors[i]||B1) : colors;
     roundRect(ctx, x, y, barW, bh, 3);
     ctx.fill();
-    // value label on bar if room
-    if (bh>18) {
-      ctx.fillStyle='#fff'; ctx.font='bold 12px Arial'; ctx.textAlign='center';
+    // value label inside the bar when it fits
+    if (bh > 18 && textW(v, 12, true) < barW - 2) {
+      ctx.fillStyle='#fff'; ctx.font=cfont(12, true); ctx.textAlign='center';
       ctx.fillText(v, x+barW/2, y+13);
     }
-    // percentage above bar
+    // percentage above the bar
     if (opts.showPct && total > 0) {
       const pct = roundedPcts ? roundedPcts[i] : Math.round(v/total*100);
-      ctx.fillStyle='#4a5568'; ctx.font='12px Arial'; ctx.textAlign='center';
-      ctx.fillText(pct+'%', x+barW/2, y-4);
+      ctx.fillStyle='#3a4f6a'; ctx.font=cfont(12);
+      drawClamped(ctx, pct+'%', x+barW/2, Math.max(y-4, 11), W, 12);
     }
   });
 
-  // X labels
-  // Build hit areas for tooltips
+  // tooltip hit areas
   const _hitAreas = values.map((v,i) => ({
     x: pad.left+i*groupW+(groupW-barW)/2, y: pad.top+chartH-(v/max)*chartH,
-    w: barW, h: (v/max)*chartH, label: labels[i].replace('\\n',' '), value: v
+    w: barW, h: (v/max)*chartH, label: String(labels[i]).replace('\n',' '), value: v
   }));
   attachBarTooltips(canvasId, _hitAreas);
 
-  ctx.fillStyle='#6b7a99'; ctx.font='12px Arial'; ctx.textAlign='center';
+  // X labels
+  ctx.fillStyle='#5f7088'; ctx.font=cfont(lblPx);
   labels.forEach((lbl,i) => {
     const x = pad.left + i*groupW + groupW/2;
-    if (opts.rotateLabels) {
-      ctx.save(); ctx.translate(x, pad.top+chartH+6);
+    if (rotate) {
+      ctx.save(); ctx.translate(x, pad.top+chartH+7);
       ctx.rotate(-Math.PI/4); ctx.textAlign='right';
-      ctx.fillText(lbl, 0, 0); ctx.restore();
+      ctx.fillText(String(lbl).replace('\n',' '), 0, 0); ctx.restore();
     } else {
-      const lines = lbl.split('\n');
-      lines.forEach((l,li) => ctx.fillText(l, x, pad.top+chartH+14+li*11));
+      if (stride > 1 && i % stride !== 0 && i !== labels.length-1) return;
+      lines[i].forEach((l,li) => drawClamped(ctx, l, x, pad.top+chartH+lblPx+2+li*(lblPx+3), W, lblPx));
     }
   });
 
@@ -872,11 +1215,22 @@ function drawBar(canvasId, labels, values, colors, opts={}) {
 function drawGroupedBar(canvasId, labels, datasets, opts={}) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
-  const { ctx, W, H } = setupCanvas(canvas);
-  const pad = {top:14,right:32,bottom:30,left:48};
-  const chartW=W-pad.left-pad.right, chartH=H-pad.top-pad.bottom;
   const allVals = datasets.flatMap(d=>d.data);
   const max = opts.axisMax || Math.max(...allVals,1);
+  const W0 = availWidth(canvas);
+  const padLeft = axisLeftPad(max, 48);
+  const padRight = 32;
+  let lblPx = 12;
+  let slot = (W0 - padLeft - padRight) / labels.length;
+  const lines = labels.map(l => wrapLabel(l, Math.max(slot - 4, 30), lblPx));
+  const maxLines = Math.max(...lines.map(a=>a.length));
+  const stride = maxLines > 1 ? 1 : labelStride(labels, slot, lblPx);
+  const bottomPad = 10 + maxLines * (lblPx + 3);
+  const baseH = parseInt(canvas.getAttribute('height')) || 220;
+  const { ctx, W, H } = setupCanvas(canvas, baseH - 14 - 30 + 14 + bottomPad);
+
+  const pad = {top:14, right:padRight, bottom:bottomPad, left:padLeft};
+  const chartW=W-pad.left-pad.right, chartH=H-pad.top-pad.bottom;
   const n=labels.length, nd=datasets.length;
   const groupW=chartW/n, barW=Math.min((groupW-4)/nd, 32);
 
@@ -884,8 +1238,8 @@ function drawGroupedBar(canvasId, labels, datasets, opts={}) {
   for(let t=0;t<=4;t++){
     const y=pad.top+chartH-(t/4)*chartH;
     ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(pad.left+chartW,y); ctx.stroke();
-    ctx.fillStyle='#9aa5be'; ctx.font='12px Arial'; ctx.textAlign='right';
-    ctx.fillText(Math.round((t/4)*max),pad.left-4,y+3);
+    ctx.fillStyle='#7a8aa0'; ctx.font=cfont(12); ctx.textAlign='right';
+    ctx.fillText(Math.round((t/4)*max),pad.left-7,y+4);
   }
 
   datasets.forEach((ds,di) => {
@@ -898,9 +1252,11 @@ function drawGroupedBar(canvasId, labels, datasets, opts={}) {
     });
   });
 
-  ctx.fillStyle='#6b7a99'; ctx.font='12px Arial'; ctx.textAlign='center';
+  ctx.fillStyle='#5f7088'; ctx.font=cfont(lblPx);
   labels.forEach((lbl,i) => {
-    ctx.fillText(lbl, pad.left+i*groupW+groupW/2, pad.top+chartH+14);
+    if (stride > 1 && i % stride !== 0 && i !== labels.length-1) return;
+    const cx = pad.left+i*groupW+groupW/2;
+    lines[i].forEach((l,li) => drawClamped(ctx, l, cx, pad.top+chartH+lblPx+2+li*(lblPx+3), W, lblPx));
   });
   chartInstances[canvasId]=true;
 }
@@ -908,27 +1264,36 @@ function drawGroupedBar(canvasId, labels, datasets, opts={}) {
 function drawLine(canvasId, labels, datasets, opts={}) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
-  const { ctx, W, H } = setupCanvas(canvas);
-  const pad={top:14,right:32,bottom:30,left:48};
-  const chartW=W-pad.left-pad.right, chartH=H-pad.top-pad.bottom;
   const allVals=datasets.flatMap(d=>d.data);
   const max=opts.axisMax || Math.max(...allVals,1);
   const n=labels.length;
+  const W0 = availWidth(canvas);
+  const padLeft = axisLeftPad(max, 48);
+  const padRight = 32;
+  let lblPx = 12;
+  const slot = n>1 ? (W0-padLeft-padRight)/(n-1) : (W0-padLeft-padRight);
+  const lines = labels.map(l => wrapLabel(l, Math.max(slot - 4, 34), lblPx));
+  const maxLines = Math.max(...lines.map(a=>a.length));
+  const stride = maxLines > 1 ? 1 : labelStride(labels, slot, lblPx);
+  const bottomPad = 10 + maxLines * (lblPx + 3);
+  const baseH = parseInt(canvas.getAttribute('height')) || 220;
+  const { ctx, W, H } = setupCanvas(canvas, baseH - 14 - 30 + 14 + bottomPad);
+
+  const pad={top:14, right:padRight, bottom:bottomPad, left:padLeft};
+  const chartW=W-pad.left-pad.right, chartH=H-pad.top-pad.bottom;
 
   ctx.strokeStyle='#eef1f8'; ctx.lineWidth=1;
   for(let t=0;t<=4;t++){
     const y=pad.top+chartH-(t/4)*chartH;
     ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(pad.left+chartW,y); ctx.stroke();
-    ctx.fillStyle='#9aa5be'; ctx.font='12px Arial'; ctx.textAlign='right';
-    ctx.fillText(Math.round((t/4)*max),pad.left-4,y+3);
+    ctx.fillStyle='#7a8aa0'; ctx.font=cfont(12); ctx.textAlign='right';
+    ctx.fillText(Math.round((t/4)*max),pad.left-7,y+4);
   }
 
+  const px = i => n===1 ? pad.left+chartW/2 : pad.left+i*(chartW/(n-1));
+
   datasets.forEach(ds => {
-    const pts=ds.data.map((v,i)=>({
-      x: n===1 ? pad.left+chartW/2 : pad.left+i*(chartW/(n-1)),
-      y: pad.top+chartH-(v/max)*chartH
-    }));
-    // fill
+    const pts=ds.data.map((v,i)=>({ x: px(i), y: pad.top+chartH-(v/max)*chartH }));
     if(ds.fill) {
       ctx.beginPath();
       ctx.moveTo(pts[0].x, pad.top+chartH);
@@ -937,25 +1302,21 @@ function drawLine(canvasId, labels, datasets, opts={}) {
       ctx.closePath();
       ctx.fillStyle=ds.fill; ctx.fill();
     }
-    // line
     ctx.beginPath(); ctx.strokeStyle=ds.color; ctx.lineWidth=2.5;
     if(ds.dashed) ctx.setLineDash([5,3]); else ctx.setLineDash([]);
     pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
     ctx.stroke(); ctx.setLineDash([]);
-    // dots
     pts.forEach(p=>{
       ctx.beginPath(); ctx.arc(p.x,p.y,3.5,0,Math.PI*2);
       ctx.fillStyle=ds.color; ctx.fill();
     });
   });
 
-  // Collect all points for tooltips
   const _linePoints = [];
   datasets.forEach((ds,di) => {
     ds.data.forEach((v,i) => {
       _linePoints.push({
-        x: n===1 ? pad.left+chartW/2 : pad.left+i*(chartW/(n-1)),
-        y: pad.top+chartH-(v/max)*chartH,
+        x: px(i), y: pad.top+chartH-(v/max)*chartH,
         label: labels[i], value: v,
         datasetLabel: ds.label || null
       });
@@ -963,10 +1324,10 @@ function drawLine(canvasId, labels, datasets, opts={}) {
   });
   attachLineTooltips(canvasId, _linePoints);
 
-  ctx.fillStyle='#6b7a99'; ctx.font='12px Arial'; ctx.textAlign='center';
+  ctx.fillStyle='#5f7088'; ctx.font=cfont(lblPx);
   labels.forEach((lbl,i) => {
-    const x = n===1 ? pad.left+chartW/2 : pad.left+i*(chartW/(n-1));
-    ctx.fillText(lbl, x, pad.top+chartH+14);
+    if (stride > 1 && i % stride !== 0 && i !== labels.length-1) return;
+    lines[i].forEach((l,li) => drawClamped(ctx, l, px(i), pad.top+chartH+lblPx+2+li*(lblPx+3), W, lblPx));
   });
   chartInstances[canvasId]=true;
 }
@@ -974,26 +1335,40 @@ function drawLine(canvasId, labels, datasets, opts={}) {
 function drawDonut(canvasId, labels, values, colors) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
-  const { ctx, W, H } = setupCanvas(canvas);
   const n = labels.length;
-  const lh = 20;
+  const total = values.reduce((a,b)=>a+b,0);
+  const roundedPcts = roundedPercentages(values, total);
+  const W0 = availWidth(canvas);
+  const swatchW = 12, swatchH = 12, gap = 7;
+
+  // shrink, then ellipsise, so no legend row can run off the card
+  let lgPx = 12;
+  const rowText = i => labels[i] + '  ' + roundedPcts[i] + '%';
+  const widest = p => Math.max(...labels.map((l,i) => textW(rowText(i), p)));
+  while (lgPx > 9 && widest(lgPx) + swatchW + gap > W0 - 6) lgPx -= 1;
+  const rows = labels.map((l,i) => ellipsise(rowText(i), W0 - swatchW - gap - 6, lgPx));
+
+  const lh = lgPx + 8;
   const legendH = n * lh + 8;
+  const baseH = parseInt(canvas.getAttribute('height')) || 220;
+  const { ctx, W, H } = setupCanvas(canvas, legendH + 130);
+
   const availH = H - legendH;
   const r = Math.min(W, availH) / 2 - 12;
   const cx = W / 2, cy = availH / 2 + 4;
   const ir = r * 0.55;
-  const total = values.reduce((a,b)=>a+b,0);
-  const roundedPcts = roundedPercentages(values, total);
   let angle = -Math.PI / 2;
 
   if (total === 0) {
-    // Draw an empty ring rather than a broken/invisible donut when every value is 0
     ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
     ctx.fillStyle = '#eef1f8'; ctx.fill();
     ctx.beginPath(); ctx.arc(cx,cy,ir,0,Math.PI*2);
     ctx.fillStyle = '#fff'; ctx.fill();
-    ctx.fillStyle = '#9aa5be'; ctx.font = '12px Arial'; ctx.textAlign = 'center';
-    ctx.fillText('No data for this period', cx, cy);
+    ctx.fillStyle = '#7a8aa0';
+    let epx = 12;
+    while (epx > 9 && textW('No data for this period', epx) > W - 8) epx -= 1;
+    ctx.font = cfont(epx);
+    drawClamped(ctx, ellipsise('No data for this period', W - 8, epx), cx, cy, W, epx);
   } else {
     values.forEach((v,i) => {
       const slice = (v/total)*Math.PI*2;
@@ -1006,19 +1381,16 @@ function drawDonut(canvasId, labels, values, colors) {
     });
   }
 
-  // single-column centred legend below donut
+  // single-column centred legend below the donut
   const startY = availH + 8;
-  const swatchW = 12, swatchH = 12, gap = 6;
-  ctx.font = '12px Arial';
-  labels.forEach((lbl,i) => {
-    const text = lbl + '  ' + roundedPcts[i] + '%';
-    const textW = ctx.measureText(text).width;
-    const rowW = swatchW + gap + textW;
-    const lx = (W - rowW) / 2;
+  ctx.font = cfont(lgPx);
+  rows.forEach((text,i) => {
+    const rowW = swatchW + gap + textW(text, lgPx);
+    const lx = Math.max(3, (W - rowW) / 2);
     const ly = startY + i * lh;
     ctx.fillStyle = colors[i];
     ctx.fillRect(lx, ly, swatchW, swatchH);
-    ctx.fillStyle = '#4a5568';
+    ctx.fillStyle = '#3a4f6a';
     ctx.textAlign = 'left';
     ctx.fillText(text, lx + swatchW + gap, ly + swatchH - 1);
   });
@@ -1067,7 +1439,8 @@ function buildBars(containerId, items, total, fixedMax, options={}) {
     const labelPct = total ? ((roundedPcts ? roundedPcts[idx] : Math.round(item.val/total*100)) + '%') : fmt(item.val);
     return `<div class="bar-row">
       <span class="bar-label">${item.label}</span>
-      <div class="bar-track"><div class="bar-fill" style="width:${widthPct}%;background:${item.color||B1};">${item.val>0?labelPct:''}</div></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${widthPct}%;background:${item.color||B1};"></div></div>
+      <span class="bar-value">${item.val>0?labelPct:''}</span>
     </div>`;
   }).join('');
 }
@@ -1474,14 +1847,15 @@ function initExpandableKPIs() {
 
 function updateFYNote(fy) {
   var note = document.getElementById('fy-context-note');
+  var noteWrap = document.getElementById('fy-note-wrap') || note;
   var footer = document.getElementById('dash-footer');
   if (!note) return;
   if (fy === '26') {
     note.textContent = 'FY 2026 data covers July 2025 through May 2026 — a partial fiscal year. Totals reflect 11 of 12 months.';
-    note.classList.add('visible');
+    noteWrap.classList.add('visible');
   } else {
     note.textContent = '';
-    note.classList.remove('visible');
+    noteWrap.classList.remove('visible');
   }
   if (footer) footer.innerHTML = '<div></div>';
 }
@@ -1690,7 +2064,8 @@ function attachBarRowTooltips(containerId) {
     const fill = row.querySelector('.bar-fill');
     if (!lbl || !fill) return;
     const labelText = lbl.textContent.trim();
-    const valText = fill.textContent.trim();
+    const valEl = row.querySelector('.bar-value');
+    const valText = (valEl || fill).textContent.trim();
     row.onmouseenter = function(e) { showTooltip(e.clientX, e.clientY, '<strong>' + labelText + '</strong><br>' + valText); };
     row.onmousemove  = function(e) { showTooltip(e.clientX, e.clientY, '<strong>' + labelText + '</strong><br>' + valText); };
     row.onmouseleave = hideTooltip;
