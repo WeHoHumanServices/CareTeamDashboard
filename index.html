@@ -267,6 +267,20 @@
   /* ── SECTION NOTE ── */
   .section-note { font-size: 12.5px; color: var(--muted); font-style: italic; margin: -10px 0 16px; }
 
+  /* ── TIME RANGE WIDGET ── */
+  .range-row { margin-bottom: 26px; }
+  .range-row:last-child { margin-bottom: 4px; }
+  .range-metric-label { font-size: 13px; font-weight: 800; color: var(--ink); margin-bottom: 4px; }
+  .range-metric-sub { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .range-track { position: relative; height: 8px; background: #edf3fa; border-radius: 999px; margin: 4px 6px 22px; }
+  .range-span { position: absolute; top: 0; height: 100%; width: 100%; background: var(--blue5); border-radius: 999px; }
+  .range-marker { position: absolute; top: -6px; width: 3px; height: 20px; border-radius: 2px; background: var(--blue); }
+  .range-marker-avg { background: var(--blue3); }
+  .range-tick-label { position: absolute; top: 14px; transform: translateX(-50%); font-size: 11px; font-weight: 700; color: var(--body); white-space: nowrap; }
+  .range-legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .range-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .range-legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
   /* ── HALF GRID ── */
   .half-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; margin-bottom: 16px; }
 
@@ -447,7 +461,7 @@
 <div class="page active" id="page-overview">
 
   <div class="page-context">
-    Call volume peaked in March 2026 and has eased over April and May, though HCL-sourced calls jumped sharply in May. Housing and basic needs remain the top presenting issues.
+    Call volume peaked in March 2026 and eased for four straight months through June, the close of the fiscal year. The referral mix shifted markedly over the year: self-referrals drove much of the mid-year growth, peaking at 108 in March, but fell to 16 by June — while calls from the Homeless Concern Line climbed for most of the year, reaching a high of 100 in May before easing slightly to 77 in June, ending the year as the single largest referral source. Housing and basic needs remain the top presenting issues.
   </div>
 
   <div class="flow-cards-wrap"><div class="flow-cards-heading" id="flow-cards-heading">Care Team activity</div><div id="flow-cards" class="flow-cards"></div><p class="flow-cards-note" id="transport-note">FY 2025 transport counts reflect logged transports to a remote resource or location. Transport counts are shown separately from follow-up contacts.</p></div>
@@ -554,6 +568,18 @@
     </div>
   </div>
 
+  <div class="chart-card full" id="card-timerange" style="margin-bottom:12px;">
+    <div class="chart-title">Time spent: full range</div>
+    <div class="chart-note" id="timerange-note">Minimum, median/average, and maximum per call — full FYTD. A high maximum reflects a small number of atypical calls, not the typical experience.</div>
+    <div id="timerange-body"></div>
+  </div>
+
+  <div class="chart-card full" id="card-transport-dest">
+    <div class="chart-title">Transport destinations</div>
+    <div class="chart-note" id="transport-dest-note">Notable destinations mentioned in Sycamores' monthly reports for the selected period. This reflects places named in the narrative, not a complete per-transport log — some entries may refer to the same location under different names as reported.</div>
+    <div id="bars-transport-dest"></div>
+  </div>
+
 </div>
 
 <!-- ═══════════════════════════════════════════
@@ -562,7 +588,7 @@
 <div class="page" id="page-outcomes">
 
   <div class="page-context">
-    Most engagements resulted in service connections, with relatively few cases requiring first-responder support.
+    Most engagements resulted in service connections. About 98% were resolved without the Care Team needing to request law enforcement or Fire/EMS support.
   </div>
 
   <div class="flow-cards-wrap"><div class="flow-cards-heading" id="outcomes-cards-heading">Outcomes activity</div><div id="kpi-outcomes-top" class="flow-cards"></div></div>
@@ -602,123 +628,162 @@
 // ══════════════════════════════════════════════
 // DATA
 // ══════════════════════════════════════════════
-const MONTHS = ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May'];
-let MONTH_LABELS = ['Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26','May 26'];
+const MONTHS = ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun'];
+let MONTH_LABELS = ['Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26','May 26','Jun 26'];
 
 // Quarter index ranges
-let QIDX = { ytd:[0,1,2,3,4,5,6,7,8,9,10], q1:[0,1,2], q2:[3,4,5], q3:[6,7,8], q4:[9,10] };
-let QLABELS = { ytd:'Jul 2025 – May 2026', q1:'Q1: Jul – Sep 2025', q2:'Q2: Oct – Dec 2025', q3:'Q3: Jan – Mar 2026', q4:'Q4 (partial): Apr – May 2026' };
+let QIDX = { ytd:[0,1,2,3,4,5,6,7,8,9,10,11], q1:[0,1,2], q2:[3,4,5], q3:[6,7,8], q4:[9,10,11] };
+let QLABELS = { ytd:'Jul 2025 – Jun 2026', q1:'Q1: Jul – Sep 2025', q2:'Q2: Oct – Dec 2025', q3:'Q3: Jan – Mar 2026', q4:'Q4: Apr – Jun 2026' };
 
-// All monthly series [Jul,Aug,Sep,Oct,Nov,Dec,Jan,Feb,Mar,Apr,May]
-// Values verified against WeHo_Care_Monthly_Report_May_2026.xlsx (Summarized Data tab) on 2026-07-09.
-// 17 prior-month figures (Jul 2025–Apr 2026) plus 6 time-of-day cells were revised in this month's
-// export vs. the previously loaded April file and were updated to match — see audit notes below.
+// All monthly series [Jul,Aug,Sep,Oct,Nov,Dec,Jan,Feb,Mar,Apr,May,Jun]
+// Values verified against WeHo_Care_Monthly_Report_June_2026.xlsx (Summarized Data tab) on 2026-08-05.
+// FY 2026 is now the complete 12-month fiscal year (Jul 2025–Jun 2026).
+// Row layout shifted by +1 starting at the referral-source section in this month's export — a new
+// "Business" referral category was inserted (Sycamores' own template, not a Claude change). Re-verified
+// every row mapping against labels rather than reusing prior row numbers. 6 small prior-month figures
+// (Mar/Apr 2026) were also revised by Sycamores since the May load — updated to match the newer export.
 const D = {
-  engagements:       [140,86,73,115,170,200,198,266,325,275,200],
-  followups:         [234,180,205,211,170,132,135,171,192,226,178],
-  unique:            [113,83,60,89,132,143,131,171,168,185,135],
+  engagements:       [140,86,73,115,170,200,198,266,325,275,200,155],
+  followups:         [234,180,205,211,170,132,135,171,192,226,178,143],
+  unique:            [113,83,60,89,132,143,131,171,168,185,135,131],
 
   // True unduplicated FYTD counts from Sycamores — only available for full YTD, not by quarter
-  // NOTE: still Jul 2025–Apr 2026 (10-month) figures — May_2026 workbook's "Current" tab
-  // (source for unduplicated demographic breakdowns) was blank/unpopulated, so these could
-  // not be updated this cycle. Flagged for Sycamores/verification before next update.
+  // NOTE: still Jul 2025–Apr 2026 (10-month) figures — the source workbook's "Current" tab
+  // (source for unduplicated demographic breakdowns) has been blank/unpopulated for three
+  // months running (Apr/May/Jun exports). Flagged for Sycamores — needed before this can update.
   FYTD_unique:       966,
   FYTD_unhoused:     772,
   FYTD_housed:       142,
   FYTD_dts:          52,
-  repeats:           [14,5,7,15,14,20,19,26,28,27,25],
-  transports:        [16,20,16,15,25,9,17,23,19,11,16],
+  repeats:           [14,5,7,15,14,20,19,26,28,27,25,16],
+  transports:        [16,20,16,15,25,9,17,23,19,11,16,18],
 
-  ageU17:            [2,2,0,1,0,1,0,3,0,1,0],
-  age1834:           [21,15,16,19,28,25,29,43,30,36,31],
-  age3549:           [32,22,18,29,34,43,38,36,49,51,34],
-  age5064:           [26,16,13,20,30,30,25,36,36,42,30],
-  age6579:           [7,12,6,10,13,12,20,14,22,16,12],
-  age80p:            [3,0,0,1,0,0,2,3,1,1,1],
-  ageDTS:            [22,16,7,9,27,32,17,36,30,38,27],
+  ageU17:            [2,2,0,1,0,1,0,3,0,1,0,0],
+  age1834:           [21,15,16,19,28,25,29,43,30,36,31,29],
+  age3549:           [32,22,18,29,34,43,38,36,49,51,34,34],
+  age5064:           [26,16,13,20,30,30,25,36,36,42,30,28],
+  age6579:           [7,12,6,10,13,12,20,14,22,16,12,8],
+  age80p:            [3,0,0,1,0,0,2,3,1,1,1,1],
+  ageDTS:            [22,16,7,9,27,32,17,36,30,38,27,31],
 
-  genderMale:        [82,61,43,58,102,98,98,137,126,139,100],
-  genderFemale:      [30,22,17,30,29,45,31,32,39,44,35],
-  genderDTS:         [1,0,0,1,1,0,2,2,3,2,0],
+  genderMale:        [82,61,43,58,102,98,98,137,126,139,100,87],
+  genderFemale:      [30,22,17,30,29,45,31,32,39,44,35,43],
+  genderDTS:         [1,0,0,1,1,0,2,2,3,2,0,1],
 
-  raceAsian:         [1,3,1,1,1,5,1,5,5,0,5],
-  raceBlack:         [36,18,15,12,29,36,28,54,46,52,38],
-  raceHispanic:      [16,18,17,23,25,23,18,25,29,26,23],
-  raceWhite:         [47,40,21,43,59,54,60,64,63,69,55],
-  raceOther:         [4,1,2,4,7,13,14,10,13,14,4],
-  raceDTS:           [9,3,4,6,11,12,10,13,12,24,10],
+  raceAsian:         [1,3,1,1,1,5,1,5,5,0,5,5],
+  raceBlack:         [36,18,15,12,29,36,28,54,46,52,38,34],
+  raceHispanic:      [16,18,17,23,25,23,18,25,29,26,23,17],
+  raceWhite:         [47,40,21,43,59,54,60,64,63,69,55,61],
+  raceOther:         [4,1,2,4,7,13,14,10,13,14,4,6],
+  raceDTS:           [9,3,4,6,11,12,10,13,12,24,10,8],
 
-  housingHoused:     [10,8,7,10,13,17,29,25,28,30,16],
-  housingUnhoused:   [95,69,49,73,110,114,89,133,131,149,112],
-  housingDTS:        [8,6,4,6,9,12,13,13,9,6,7],
+  housingHoused:     [10,8,7,10,13,17,29,25,28,30,16,24],
+  housingUnhoused:   [95,69,49,73,110,114,89,133,131,149,112,105],
+  housingDTS:        [8,6,4,6,9,12,13,13,9,6,7,2],
 
-  refAmbassadors:    [33,27,14,14,53,45,30,16,10,15,13],
-  refSycamores:      [47,19,21,23,25,32,14,25,28,37,18],
-  refSelf:           [8,8,9,11,24,40,42,59,108,81,33],
-  refHCL:            [11,6,2,5,12,25,40,97,88,89,100],
-  refLawEnf:         [18,12,9,13,17,21,37,22,19,20,16],
-  refOther:          [18,10,14,27,14,14,13,15,24,6,7],
-  refWeHoAgency:     [0,1,0,11,10,12,7,10,17,4,3],
-  refWeHoStaff:      [3,2,1,8,7,6,5,8,15,7,1],
-  refFriendFam:      [0,0,0,0,5,2,4,10,7,9,6],
-  refFireEMS:        [2,0,3,1,1,2,4,2,5,1,2],
+  refAmbassadors:    [33,27,14,14,53,45,30,16,10,15,13,5],
+  refSycamores:      [47,19,21,23,25,32,14,25,28,38,18,27],
+  refSelf:           [8,8,9,11,24,40,42,59,108,81,33,16],
+  refHCL:            [11,6,2,5,12,25,40,97,88,88,100,77],
+  refLawEnf:         [18,12,9,13,17,21,37,22,19,20,16,16],
+  refOther:          [18,10,14,27,14,14,13,15,24,6,7,1],
+  refWeHoAgency:     [0,1,0,11,10,12,7,10,17,4,3,1],
+  refWeHoStaff:      [3,2,1,8,7,6,5,8,15,7,1,1],
+  refFriendFam:      [0,0,0,0,5,2,4,10,7,9,6,7],
+  refFireEMS:        [2,0,3,1,1,2,4,2,4,1,2,2],
+  // Added 2026-08-05: previously-untracked referral categories.
+  refDMH:               [0,1,0,2,2,1,2,2,4,2,0,1],
+  refConcernedCommunity:[0,0,0,0,0,0,0,0,0,3,1,0], // new category, Sycamores began collecting Apr 2026
+  refLibrary:           [0,0,0,0,0,0,0,0,0,1,0,0], // new category, Sycamores began collecting Apr 2026
+  refBusiness:          [0,0,0,0,0,0,0,0,0,0,0,1], // new category, Sycamores began collecting Jun 2026
 
-  presBasicNeeds:    [83,59,38,73,100,95,99,143,170,150,132],
-  presHousing:       [87,37,35,64,98,100,100,138,182,169,102],
-  presWelfare:       [26,19,22,24,32,46,42,61,72,67,43],
-  presHealth:        [11,7,8,7,21,16,21,24,31,29,15],
-  presSubUse:        [9,4,9,7,10,12,8,21,23,11,8],
-  presCrisis:        [5,4,3,4,7,10,10,16,23,13,7],
+  presBasicNeeds:    [83,59,38,73,100,95,99,143,170,150,132,85],
+  presHousing:       [87,37,35,64,98,100,100,138,182,169,102,93],
+  presWelfare:       [26,19,22,24,32,46,42,61,72,67,43,40],
+  presHealth:        [11,7,8,7,21,16,21,24,31,29,15,5],
+  presSubUse:        [9,4,9,7,10,12,8,21,23,11,8,7],
+  presCrisis:        [5,4,3,4,7,10,10,16,23,13,7,12],
+  // Added 2026-07-09: previously tracked in the source but not charted on the public dashboard.
+  presSuicideRisk:   [1,0,0,2,1,0,3,3,1,3,4,0],
+  presDangerOthers:  [0,0,0,0,0,1,1,1,1,0,0,0],
 
-  locPublic:         [103,59,51,79,113,135,108,173,154,159,142],
-  locTelephone:      [6,3,7,11,33,41,33,64,131,77,25],
-  locSheriff:        [10,3,3,10,12,7,22,5,10,10,5],
-  locPrivRes:        [10,7,6,5,3,10,18,13,18,13,11],
-  locBusiness:       [8,9,5,3,3,1,6,5,4,10,12],
-  locOther:          [1,5,1,5,5,5,4,4,3,4,3],
+  locPublic:         [103,59,51,79,113,135,108,173,154,160,142,120],
+  locTelephone:      [6,3,7,11,33,41,33,64,131,77,25,11],
+  locSheriff:        [10,3,3,10,12,7,22,5,10,10,5,8],
+  locPrivRes:        [10,7,6,5,3,10,18,13,18,13,11,9],
+  locBusiness:       [8,9,5,3,3,1,6,5,4,9,12,6],
+  locOther:          [1,5,1,5,5,5,4,4,3,4,3,1],
+  // Added 2026-07-09: previously tracked in the source but not charted (dropped from the
+  // Service Locations total rather than folded into "Other").
+  locED:             [2,0,0,1,0,0,7,2,1,1,2,0],
+  locHolloway:       [0,0,0,1,1,1,0,0,3,1,0,0],
 
-  dowSun: [19,13,11,6,31,27,18,24,28,24,28],
-  dowMon: [25,14,8,8,9,26,23,32,28,28,25],
-  dowTue: [21,11,14,14,16,20,13,21,39,40,25],
-  dowWed: [16,8,10,25,26,47,31,63,66,64,18],
-  dowThu: [24,12,12,29,32,33,36,57,60,56,38],
-  dowFri: [24,13,12,21,31,24,48,39,75,21,30],
-  dowSat: [11,15,7,12,25,23,29,30,29,42,36],
+  dowSun: [19,13,11,6,31,27,18,24,28,24,28,5],
+  dowMon: [25,14,8,8,9,26,23,32,28,28,25,26],
+  dowTue: [21,11,14,14,16,20,13,21,39,40,25,28],
+  dowWed: [16,8,10,25,26,47,31,63,66,64,18,25],
+  dowThu: [24,12,12,29,32,33,36,57,60,56,38,20],
+  dowFri: [24,13,12,21,31,24,48,39,75,21,30,27],
+  dowSat: [11,15,7,12,25,23,29,30,29,42,36,24],
 
-  tod: [[13,9,4,5,8,13,12,22,15,15,25],[6,3,2,6,9,3,17,17,14,17,21],[5,3,1,3,1,1,8,8,5,16,10],
-        [3,8,3,1,14,16,9,19,22,29,18],[10,6,6,9,24,35,19,27,55,29,15],[6,3,4,3,19,18,22,37,39,22,11],
-        [6,4,2,14,14,22,14,25,49,21,4],[32,13,13,20,22,32,29,25,44,26,20],[17,4,12,23,16,18,22,23,13,20,15],
-        [12,12,9,10,9,14,19,22,26,28,12],[10,11,9,11,16,11,11,10,15,19,25],[20,10,9,9,18,17,16,31,28,33,24]],
+  tod: [[13,9,4,5,8,13,12,22,15,15,25,27],[6,3,2,6,9,3,17,17,14,17,21,13],[5,3,1,3,1,1,8,8,5,16,10,7],
+        [3,8,3,1,14,16,9,19,22,29,18,12],[10,6,6,9,24,35,19,27,55,29,15,9],[6,3,4,3,19,18,22,37,39,22,11,3],
+        [6,4,2,14,14,22,14,25,49,21,4,5],[32,13,13,20,22,32,29,25,44,26,20,7],[17,4,12,23,16,18,22,23,13,20,15,13],
+        [12,12,9,10,9,14,19,22,26,28,12,20],[10,11,9,11,16,11,11,10,15,19,25,17],[20,10,9,9,18,17,16,31,28,33,24,22]],
 
-  onSceneSupplies:   [74,48,34,54,65,66,70,76,80,88,85],
-  onSceneShelter:    [62,19,20,47,47,46,47,66,69,66,52],
-  onSceneFood:       [6,5,4,13,26,12,22,30,37,25,10],
-  onSceneHealth:     [9,3,6,10,13,19,17,21,13,14,10],
-  onSceneTransCoord: [9,8,7,9,12,9,18,20,16,8,14],
-  onSceneSUD:        [3,0,7,7,5,6,8,17,14,6,6],
-  onSceneMH:         [3,1,1,4,3,3,10,9,5,5,5],
+  onSceneSupplies:   [74,48,34,54,65,66,70,76,80,88,85,65],
+  onSceneShelter:    [62,19,20,47,47,46,47,66,69,66,52,53],
+  onSceneFood:       [6,5,4,13,26,12,22,30,37,25,10,18],
+  onSceneHealth:     [9,3,6,10,13,19,17,21,13,14,10,5],
+  onSceneTransCoord: [9,8,7,9,12,9,18,20,16,8,14,17],
+  onSceneSUD:        [3,0,7,7,5,6,8,17,14,6,6,7],
+  onSceneMH:         [3,1,1,4,3,3,10,9,5,5,5,5],
 
-  fuShelter:         [63,56,64,87,54,53,25,47,47,52,47],
-  fuDeclined:        [69,43,39,48,36,31,35,55,55,76,55],
-  fuFood:            [44,41,28,22,33,11,8,19,13,19,31],
-  fuHealth:          [34,19,34,30,13,17,16,21,14,26,25],
-  fuMH:              [18,14,14,11,13,9,13,14,22,23,11],
-  fuSUD:             [13,11,15,8,18,7,5,11,11,8,5],
+  fuShelter:         [63,56,64,87,54,53,25,47,47,52,47,36],
+  fuDeclined:        [69,43,39,48,36,31,35,55,55,76,55,51],
+  fuFood:            [44,41,28,22,33,11,8,19,13,19,31,17],
+  fuHealth:          [34,19,34,30,13,17,16,21,14,26,25,11],
+  fuMH:              [18,14,14,11,13,9,13,14,22,23,11,13],
+  fuSUD:             [13,11,15,8,18,7,5,11,11,8,5,7],
 
-  frLASD:            [2,2,1,0,3,6,2,4,0,3,0],
-  frLASDHoused:      [1,0,0,0,0,2,0,2,0,2,0],
-  frLASDUnhoused:    [1,2,1,0,3,4,1,1,0,1,0],
-  frLASDDTS:         [0,0,0,0,0,0,1,1,0,0,0],
-  frLACFD:           [1,1,2,0,0,1,6,3,0,0,1],
-  frLACFDHoused:     [1,0,1,0,0,0,0,1,0,0,0],
-  frLACFDUnhoused:   [0,1,1,0,0,0,5,1,0,0,1],
-  frLACFDDTS:        [0,0,0,0,0,1,1,1,0,0,0],
-  frHoldsApplied:    [0,0,0,1,1,0,1,0,1,3,1],
-  frHoldsVoided:     [0,0,0,0,0,1,0,0,0,0,0],
+  frLASD:            [2,2,1,0,3,6,2,4,0,3,0,2],
+  frLASDHoused:      [1,0,0,0,0,2,0,2,0,2,0,2],
+  frLASDUnhoused:    [1,2,1,0,3,4,1,1,0,1,0,0],
+  frLASDDTS:         [0,0,0,0,0,0,1,1,0,0,0,0],
+  frLACFD:           [1,1,2,0,0,1,6,3,0,0,1,0],
+  frLACFDHoused:     [1,0,1,0,0,0,0,1,0,0,0,0],
+  frLACFDUnhoused:   [0,1,1,0,0,0,5,1,0,0,1,0],
+  frLACFDDTS:        [0,0,0,0,0,1,1,1,0,0,0,0],
+  // CORRECTED 2026-07-09: frHoldsApplied now reflects the source's true "Total number of
+  // involuntary hold applications (5585/5150)" row rather than the FIT-assessment-request row
+  // it was previously (incorrectly) populated from. frFITRequests tracks that request count
+  // separately.
+  frFITRequests:     [0,0,0,1,1,0,1,0,1,3,1,0],
+  frHoldsApplied:    [1,0,0,1,0,1,0,2,1,0,0,0],
+  frHoldsVoided:     [0,0,0,0,0,1,0,0,0,0,0,0],
 
-  onSceneUnique:     [98,71,55,77,102,100,107,125,118,127,110],
-  fuUnique:          [131,100,102,116,108,96,85,110,123,132,102],
+  onSceneUnique:     [98,71,55,77,102,100,107,125,118,127,110,109],
+  fuUnique:          [131,100,102,116,108,96,85,110,123,132,102,86],
 };
+
+// Free-text "Destination of transport" field from the source workbook, one entry per FY26
+// month (Jul–Jun), matching MONTHS order. This is a sample of locations mentioned in Sycamores'
+// monthly narrative, NOT a complete one-row-per-transport log. Treat as "notable destinations
+// reported," not a percentage-of-transports breakdown. Not available for FY25.
+const TRANSPORT_DEST_26 = [
+  ["Kaiser","LGBTQ Center","Metro Station","CVS","Ramada Plaza","Saban Community Clinic"],
+  ["WeHo Park","DMV","LGBTQ+ Senior Center","Culver City Hospital","DPSS Office","Cedar Hospital"],
+  ["Beacon House","Cedar Sinai","Culver City"],
+  ["Safe Landing","Wilshire","YWCA Shelter"],
+  ["Hollywood Food Coalition","Hollywood Presbyterian Hospital","Cedars Emergency Room","Alta Vista Assisted Living","LGBT Center, Los Angeles","Symlar Community Bridge Housing"],
+  ["VA Office","African Communities Public Health Coalition","Cedar Sinai","Hollywood Presbytarian Hospital","DPSS","Turning Point homeless shelter"],
+  ["Consumer apartment","Cedar hospital","Consumer home"],
+  ["DMH offic","CVS","Plummer Park","CS home","WeHo LASD Lobby","Hospital"],
+  ["Hospital","TAY Interim Housing, West Hollywood","Medical Center","LAHSA PATH"],
+  ["Private residence","Safe Landing","Hospital"],
+  ["Kaiser","Cedars Sinai","Hospital"],
+  ["Downtown LA Hotel","Hostel","Southern California Hospital Culver City","Wilshire","Culver City","Sea Shore Motel"]
+];
 
 
 // ── FYTD UNDUPLICATED DEMOGRAPHIC DATA (966 unique individuals, Jul 2025–Apr 2026) ──
@@ -834,6 +899,20 @@ const D25 = {
   FYTD_housed: 0,
   FYTD_dts: 0,
   tod: [[6, 5, 12, 21, 13, 19, 4, 11, 8, 14, 31, 13], [3, 5, 2, 17, 8, 6, 2, 4, 8, 4, 17, 6], [3, 2, 2, 3, 3, 8, 0, 2, 3, 8, 5, 5], [22, 17, 23, 7, 10, 13, 9, 1, 3, 4, 1, 0], [17, 18, 27, 23, 8, 19, 9, 3, 2, 6, 14, 6], [15, 7, 4, 7, 6, 12, 4, 0, 2, 9, 8, 3], [1, 16, 7, 0, 6, 9, 4, 0, 1, 5, 5, 11], [18, 2, 15, 15, 21, 14, 10, 6, 16, 6, 16, 16], [40, 46, 18, 20, 18, 10, 14, 10, 14, 18, 6, 11], [12, 26, 5, 9, 9, 15, 8, 14, 7, 6, 13, 12], [18, 22, 8, 9, 10, 7, 8, 5, 7, 6, 3, 7], [16, 12, 9, 16, 8, 17, 14, 17, 23, 29, 24, 24]],
+
+  // Zero-filled 2026-08-05: these fields were added for FY26 and have no equivalent FY25 source
+  // in this conversation. Zero-filled here (rather than left undefined) so switching to FY 2025
+  // can't show leftover FY26 values; the dashboard hides these categories for FY25 rather than
+  // presenting an unverified "0".
+  frFITRequests: [0,0,0,0,0,0,0,0,0,0,0,0],
+  presSuicideRisk: [0,0,0,0,0,0,0,0,0,0,0,0],
+  presDangerOthers: [0,0,0,0,0,0,0,0,0,0,0,0],
+  refDMH: [0,0,0,0,0,0,0,0,0,0,0,0],
+  refConcernedCommunity: [0,0,0,0,0,0,0,0,0,0,0,0],
+  refLibrary: [0,0,0,0,0,0,0,0,0,0,0,0],
+  refBusiness: [0,0,0,0,0,0,0,0,0,0,0,0],
+  locED: [0,0,0,0,0,0,0,0,0,0,0,0],
+  locHolloway: [0,0,0,0,0,0,0,0,0,0,0,0],
 
 };
 
@@ -1424,6 +1503,24 @@ function roundDisplay(val) { return Math.ceil(Number(val)); }
 // ══════════════════════════════════════════════
 // BAR ROW BUILDER
 // ══════════════════════════════════════════════
+// Computes a clean axis ceiling from the actual values being plotted, with headroom, so
+// charts never clip bars or push value labels off-canvas as more months of cumulative FYTD
+// data get added each update. Replaces the old approach of hardcoded per-chart numbers,
+// which went stale every few months and were the root cause of "missing" bar labels —
+// the label was being drawn correctly, just positioned above/outside the canvas because the
+// bar itself was taller than a ceiling that hadn't been updated to match the current totals.
+function niceAxisMax(values, headroom) {
+  headroom = headroom || 1.12;
+  const raw = Math.max(...values.filter(v => typeof v === 'number' && !isNaN(v)), 1) * headroom;
+  const pow10 = Math.pow(10, Math.floor(Math.log10(raw)));
+  const steps = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
+  for (let i = 0; i < steps.length; i++) {
+    const candidate = steps[i] * pow10;
+    if (candidate >= raw) return candidate;
+  }
+  return 10 * pow10;
+}
+
 function buildBars(containerId, items, total, fixedMax, options={}) {
   const el = document.getElementById(containerId);
   if (!el) return;
@@ -1496,25 +1593,15 @@ function renderOverview() {
   const mEng = periodMonthData('engagements');
   const mFU = periodMonthData('followups');
 
-  // Axis ceilings — scaled to FY
-  const isFY25 = currentFY === '25';
-  const AX = {
-    trend: isFY25 ? 400 : 300,
-    presenting: isFY25 ? 1200 : 700,
-    referral: isFY25 ? 1000 : 300,
-    age: 260, race: 400, housing: 140, dow: 260, tod: 200,
-    onscene: isFY25 ? 600 : 500, furef: isFY25 ? 1000 : 460, repeats: 30
-  };
-
   if (mLabels.length === 1) {
     drawGroupedBar('c-trend', mLabels,
       [{label:'Engagements',data:mEng,color:B1},{label:'Follow-ups',data:mFU,color:B2}],
-      {axisMax: AX.trend});
+      {axisMax: niceAxisMax([...mEng, ...mFU])});
   } else {
     drawLine('c-trend', mLabels, [
       {data:mEng, color:B1, fill:'rgba(0,48,135,0.07)'},
       {data:mFU, color:B2, fill:'rgba(91,155,213,0.07)'}
-    ], {axisMax: AX.trend});
+    ], {axisMax: niceAxisMax([...mEng, ...mFU])});
   }
 
   const presItems = [
@@ -1525,7 +1612,11 @@ function renderOverview() {
     {label:'Substance use', val:periodSum('presSubUse'), color:B3},
     {label:'Crisis intervention', val:periodSum('presCrisis'), color:B3},
   ];
-  buildBars('bars-presenting', presItems, eng, AX.presenting);
+  if (currentFY === '26') {
+    presItems.push({label:'Suicide risk / danger to self', val:periodSum('presSuicideRisk'), color:B4});
+    presItems.push({label:'Danger to others', val:periodSum('presDangerOthers'), color:B4});
+  }
+  buildBars('bars-presenting', presItems, eng, niceAxisMax(presItems.map(i=>i.val)));
   attachBarRowTooltips('bars-presenting');
 
   const refItems = [
@@ -1540,7 +1631,13 @@ function renderOverview() {
     {label:'Fire / EMS', val:periodSum('refFireEMS'), color:B3},
     {label:'Other', val:periodSum('refOther'), color:B3},
   ];
-  buildBars('bars-referral', refItems, eng, AX.referral, {sumTo100: true});
+  if (currentFY === '26') {
+    refItems.push({label:'DMH ACCESS/PMRT', val:periodSum('refDMH'), color:B4});
+    refItems.push({label:'Concerned community member', val:periodSum('refConcernedCommunity'), color:B4});
+    refItems.push({label:'Library', val:periodSum('refLibrary'), color:B4});
+    refItems.push({label:'Business', val:periodSum('refBusiness'), color:B4});
+  }
+  buildBars('bars-referral', refItems, eng, niceAxisMax(refItems.map(i=>i.val)), {sumTo100: true});
   attachBarRowTooltips('bars-referral');
 }
 
@@ -1567,8 +1664,6 @@ function renderDemographics() {
   const dts      = useDemoFYTD ? D_demo.housingDTS      : periodSum('housingDTS');
   const total    = housed + unhoused + dts || 1;
 
-  const isFY25d = currentFY === '25';
-  const AX = { age: isFY25d ? 500 : 260, race: isFY25d ? 700 : 400, housing: isFY25d ? 250 : 140 };
   const pctBase = useDemoFYTD ? DEMO_TOTAL : total;
 
   var demoScopeText = useDemoFYTD
@@ -1590,13 +1685,13 @@ function renderDemographics() {
   drawBar('c-age',
     ['0–17','18–34','35–49','50–64','65–79','80+','DTS'],
     ageVals,
-    [B4,B1,B1,B1,B2,B3,B4], {axisMax: AX.age, showPct: true, pctBase: pctBase, sumTo100: true}
+    [B4,B1,B1,B1,B2,B3,B4], {axisMax: niceAxisMax(ageVals), showPct: true, pctBase: pctBase, sumTo100: true}
   );
 
   drawBar('c-race',
     ['White','Black / AA','Hispanic /\nLatino','DTS','Other /\nMulti','Asian / PI'],
     raceVals,
-    [B1,B1,B1,B3,B2,B4], {leftPad:44, axisMax: AX.race, showPct: true, pctBase: pctBase, sumTo100: true}
+    [B1,B1,B1,B3,B2,B4], {leftPad:44, axisMax: niceAxisMax(raceVals), showPct: true, pctBase: pctBase, sumTo100: true}
   );
 
   drawDonut('c-gender',['Male','Female','Decline to state'],[gMale,gFemale,gDTS],[B1,B2,B4]);
@@ -1615,41 +1710,47 @@ function renderDemographics() {
   const mLabels  = periodMonthLabels();
   const mHoused  = periodMonthData('housingHoused');
   const mUnhoused = periodMonthData('housingUnhoused');
+  const housingAxisMax = niceAxisMax([...mHoused, ...mUnhoused]);
   if (mLabels.length===1) {
     drawGroupedBar('c-housing',mLabels,[
       {label:'Unhoused',data:mUnhoused,color:B1},
       {label:'Housed',data:mHoused,color:B2}
-    ], {axisMax: AX.housing});
+    ], {axisMax: housingAxisMax});
   } else {
     drawLine('c-housing', mLabels, [
       {data:mUnhoused, color:B1, fill:'rgba(0,48,135,0.07)'},
       {data:mHoused, color:B2, fill:'rgba(91,155,213,0.07)'}
-    ], {axisMax: AX.housing});
+    ], {axisMax: housingAxisMax});
     attachLineTooltips('c-housing', mLabels, [{label:'Unhoused',data:mUnhoused},{label:'Housed',data:mHoused}]);
   }
 }
 
 function renderCalls() {
   const idx = monthsInPeriod();
-  const isFY25c = currentFY === '25';
-  const AX = { dow: isFY25c ? 280 : 260, tod: isFY25c ? 300 : 200 };
 
   const dowKeys=['dowSun','dowMon','dowTue','dowWed','dowThu','dowFri','dowSat'];
   const dowVals = dowKeys.map(k=>periodSum(k));
   const maxDow = Math.max(...dowVals);
   const dowColors = dowVals.map(v => v===maxDow?B1:B3);
-  drawBar('c-dow',['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], dowVals, dowColors, {axisMax: AX.dow});
+  drawBar('c-dow',['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], dowVals, dowColors, {axisMax: niceAxisMax(dowVals)});
 
   const todLabels=['12–2a','2–4a','4–6a','6–8a','8–10a','10a–12p','12–2p','2–4p','4–6p','6–8p','8–10p','10p–12a'];
   const todVals = D.tod.map(row => sum(row,idx));
   const maxTod = Math.max(...todVals);
   const todColors = todVals.map(v=>v===maxTod?B1:v>maxTod*0.7?B2:B3);
-  drawBar('c-tod', todLabels, todVals, todColors, {rotateLabels:true, maxBarW:32, axisMax: AX.tod});
+  drawBar('c-tod', todLabels, todVals, todColors, {rotateLabels:true, maxBarW:32, axisMax: niceAxisMax(todVals)});
 
   const locLabels=['Public space','Telephone','Sheriff station','Private residence','Business','Other'];
-  const locVals=['locPublic','locTelephone','locSheriff','locPrivRes','locBusiness','locOther'].map(k=>periodSum(k));
+  const locKeysBase=['locPublic','locTelephone','locSheriff','locPrivRes','locBusiness','locOther'];
+  const locColorsBase=[B1,B2,B3,B4,B3,B4];
+  if (currentFY === '26') {
+    locLabels.push('Emergency Dept.', 'Holloway Interim Housing');
+    locKeysBase.push('locED','locHolloway');
+    locColorsBase.push(B2, B1);
+  }
+  const locVals = locKeysBase.map(k=>periodSum(k));
   const locTotal = locVals.reduce((a,b)=>a+b,0);
-  const locItems = locLabels.map((lbl,i) => ({label:lbl, val:locVals[i], color:[B1,B2,B3,B4,B3,B4][i]}));
+  const locItems = locLabels.map((lbl,i) => ({label:lbl, val:locVals[i], color:locColorsBase[i]}));
   buildBars('bars-loc', locItems, locTotal, null, {sumTo100: true});
   attachBarRowTooltips('bars-loc');
 
@@ -1672,13 +1773,87 @@ function renderCalls() {
     <tr class="row-group"><td colspan="2">Queue wait (when team was already on a call)</td></tr>
     <tr><td>Avg queue wait</td><td>${callTime.queueAvg} min</td></tr>
     <tr><td>Wait time in queue — median</td><td>${callTime.queueMedian} min</td></tr>`;
+
+  renderTimeRange(callTime);
+  renderTransportDest();
+}
+
+function renderTimeRange(callTime) {
+  const body = document.getElementById('timerange-body');
+  const note = document.getElementById('timerange-note');
+  if (!body) return;
+  if (callTime.responseMax == null) {
+    body.innerHTML = '<div class="bar-empty-state">Full min/max range not available for FY 2025 in this data set.</div>';
+    if (note) note.textContent = 'Only available for FY 2026 in this data set.';
+    return;
+  }
+  if (note) note.textContent = 'Median and average per call, scaled to the typical range — full FYTD (' + callTime.dateRange + '). Maximums observed are shown separately: a small number of atypical calls run far longer and would make a true-to-scale bar unreadable for everything else.';
+  const metrics = [
+    {label:'Dispatch → arrival', sub:'Response time', min:callTime.responseMin, mid:callTime.responseMedian, avg:callTime.responseAvg, max:callTime.responseMax},
+    {label:'Arrival → close', sub:'Call duration', min:callTime.callMin, mid:callTime.callMedian, avg:callTime.callAvg, max:callTime.callMax},
+    {label:'Dispatch queue wait', sub:'Only when team was already on a call', min:callTime.queueMin, mid:callTime.queueMedian, avg:callTime.queueAvg, max:callTime.queueMax},
+  ];
+  body.innerHTML = metrics.map(m => {
+    // Track is scaled to the typical range (not the true max) so median/average stay readable;
+    // the true max is shown as a separate callout rather than positioned to scale.
+    const displayMax = Math.max(m.avg, m.mid) * 2.4;
+    const midPct = Math.min(96, Math.max(4, (m.mid / displayMax) * 100));
+    const avgPct = Math.min(96, Math.max(4, (m.avg / displayMax) * 100));
+    const order = midPct <= avgPct
+      ? `<div class="range-marker" style="left:${midPct}%;" title="Median: ${m.mid} min"></div><div class="range-marker range-marker-avg" style="left:${avgPct}%;" title="Average: ${m.avg} min"></div>`
+      : `<div class="range-marker range-marker-avg" style="left:${avgPct}%;" title="Average: ${m.avg} min"></div><div class="range-marker" style="left:${midPct}%;" title="Median: ${m.mid} min"></div>`;
+    return `<div class="range-row">
+      <div class="range-metric-label">${m.label}</div>
+      <div class="range-metric-sub">${m.sub}</div>
+      <div class="range-track">
+        <div class="range-span" style="left:0%; width:100%;"></div>
+        ${order}
+        <span class="range-tick-label" style="left:0%;">${m.min} min</span>
+      </div>
+      <div class="range-legend">
+        <span><span class="range-legend-dot" style="background:var(--blue3);"></span>Average ${m.avg} min</span>
+        <span><span class="range-legend-dot" style="background:var(--blue);"></span>Median ${m.mid} min</span>
+        <span>Max observed: <strong>${fmt(m.max)} min</strong></span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderTransportDest() {
+  const container = document.getElementById('bars-transport-dest');
+  const note = document.getElementById('transport-dest-note');
+  if (!container) return;
+  if (currentFY !== '26') {
+    container.innerHTML = '<div class="bar-empty-state">Destination tracking not available for FY 2025 in this data set.</div>';
+    if (note) note.textContent = 'Only available for FY 2026 in this data set.';
+    return;
+  }
+  const idx = monthsInPeriod();
+  const counts = {};
+  idx.forEach(i => {
+    (TRANSPORT_DEST_26[i] || []).forEach(place => {
+      const key = place.trim();
+      if (!key) return;
+      counts[key] = (counts[key] || 0) + 1;
+    });
+  });
+  const entries = Object.entries(counts).sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0]));
+  if (!entries.length) {
+    container.innerHTML = '<div class="bar-empty-state">No destinations recorded for this period.</div>';
+    return;
+  }
+  const top = entries.slice(0, 8);
+  const otherCount = entries.slice(8).reduce((t,e) => t+e[1], 0);
+  const items = top.map(([label,val]) => ({label, val, color: B1}));
+  if (otherCount > 0) items.push({label: 'Other locations (' + entries.slice(8).length + ')', val: otherCount, color: B4});
+  buildBars('bars-transport-dest', items, null, niceAxisMax(items.map(i=>i.val)));
+  attachBarRowTooltips('bars-transport-dest');
 }
 
 function renderOutcomes() {
   const fuEng = periodSum('followups');
   const trans = periodSum('transports');
   const isFY25o = currentFY === '25';
-  const AX = { onscene: isFY25o ? 900 : 500, furef: isFY25o ? undefined : 460, repeats: isFY25o ? 100 : 30 };
 
   var fyCfg = FY_CONFIG[currentFY];
   var outcomesHead = document.getElementById('outcomes-cards-heading');
@@ -1687,6 +1862,9 @@ function renderOutcomes() {
 
   var outcomesEl = document.getElementById('kpi-outcomes-top');
   if (outcomesEl) {
+    const totalEng = periodSum('engagements') || 1;
+    const escalated = periodSum('frLASD') + periodSum('frLACFD');
+    const diversionPct = Math.round((1 - escalated/totalEng) * 100);
     outcomesEl.innerHTML =
       '<div class="flow-card">' +
         '<div class="flow-card-label">On-scene services</div>' +
@@ -1702,6 +1880,11 @@ function renderOutcomes() {
         '<div class="flow-card-label">Transports completed</div>' +
         '<div class="flow-card-value">' + fmt(trans) + '</div>' +
         '<div class="flow-card-sub">Logged remote-resource transports · avg ' + roundDisplay(fyCfg.avgTransport) + ' min</div>' +
+      '</div>' +
+      '<div class="flow-card">' +
+        '<div class="flow-card-label">Resolved without escalation</div>' +
+        '<div class="flow-card-value">' + diversionPct + '%</div>' +
+        '<div class="flow-card-sub">Engagements that did not require requesting LASD or Fire/EMS support</div>' +
       '</div>';
   }
 
@@ -1715,7 +1898,7 @@ function renderOutcomes() {
     {label:'Mental health', val:periodSum('onSceneMH'), color:B4}
   ];
   const displayedOnSceneItems = isFY25o ? onSceneItems.filter(function(item){ return item.val > 0; }) : onSceneItems;
-  buildBars('bars-onscene', displayedOnSceneItems, null, AX.onscene);
+  buildBars('bars-onscene', displayedOnSceneItems, null, niceAxisMax(displayedOnSceneItems.map(i=>i.val)));
   attachBarRowTooltips('bars-onscene');
 
   var onSceneCard = document.getElementById('bars-onscene');
@@ -1732,7 +1915,7 @@ function renderOutcomes() {
     {label:'Mental health', val:periodSum('fuMH'), color:B3},
     {label:'SUD treatment', val:periodSum('fuSUD'), color:B4}
   ];
-  buildBars('bars-followup', followupItems, null, AX.furef);
+  buildBars('bars-followup', followupItems, null, niceAxisMax(followupItems.map(i=>i.val)));
   attachBarRowTooltips('bars-followup');
 
   const lasd = periodSum('frLASD');
@@ -1743,6 +1926,7 @@ function renderOutcomes() {
   const lacfdH = periodSum('frLACFDHoused');
   const lacfdU = periodSum('frLACFDUnhoused');
   const lacfdD = Math.max(0, lacfd - lacfdH - lacfdU);
+  const fitReq = currentFY === '26' ? periodSum('frFITRequests') : null;
   const holds = periodSum('frHoldsApplied');
   const voided = periodSum('frHoldsVoided');
 
@@ -1760,8 +1944,9 @@ function renderOutcomes() {
       + '<tr class="row-indent"><td>Contacts who were unhoused</td><td>' + lacfdU + '</td></tr>'
       + '<tr class="row-indent"><td>Contacts who were housed</td><td>' + lacfdH + '</td></tr>'
       + (lacfdD ? '<tr class="row-indent"><td>Housing status not recorded</td><td>' + lacfdD + '</td></tr>' : '')
-      + '<tr class="row-group"><td colspan="2">Involuntary holds</td></tr>'
-      + '<tr><td>Holds initiated (5585 / 5150)</td><td>' + holds + '</td></tr>'
+      + '<tr class="row-group"><td colspan="2">Involuntary holds (LACDMH)</td></tr>'
+      + (fitReq !== null ? '<tr><td>FIT team assessments requested</td><td>' + fitReq + '</td></tr>' : '')
+      + '<tr><td>Holds applied (5585 / 5150)</td><td>' + holds + '</td></tr>'
       + '<tr><td>Holds voided or discontinued</td><td>' + voided + '</td></tr>';
   }
 
@@ -1851,7 +2036,7 @@ function updateFYNote(fy) {
   var footer = document.getElementById('dash-footer');
   if (!note) return;
   if (fy === '26') {
-    note.textContent = 'FY 2026 data covers July 2025 through May 2026 — a partial fiscal year. Totals reflect 11 of 12 months.';
+    note.textContent = 'FY 2026 data covers the complete fiscal year, July 2025 through June 2026.';
     noteWrap.classList.add('visible');
   } else {
     note.textContent = '';
@@ -1865,11 +2050,11 @@ function updateFYNote(fy) {
 // the source workbook's own "Fiscal Year-to-Date" column (Summarized Data tab), not
 // computed by averaging the monthly averages together — those two methods can differ
 // meaningfully, and the FYTD column is what the City's official monthly report cites.
-// Verified 2026-07-09 against WeHo_Care_Monthly_Report_May_2026.xlsx (now 11 months,
-// Jul 2025–May 2026). One open item, still unresolved: the source FYTD column gives
-// transport time as 36 min (was 39 min at 10 months) but the City's official monthly
-// report has previously cited a materially higher figure (49 min) — neither this
-// dashboard nor the source workbook can reconcile that; flagged for Sycamores.
+// Verified 2026-08-05 against WeHo_Care_Monthly_Report_June_2026.xlsx — FY26 is now the
+// complete 12-month fiscal year (Jul 2025–Jun 2026). The transport-time discrepancy flagged
+// in prior updates (source FYTD column vs. the City's official monthly report) remains an
+// open, unresolved item — the workbook now gives 34 min; no official-report figure to compare
+// against was available this cycle.
 const FY_CONFIG = {
   '25': {
     avgResponse: 8.3, avgDuration: 23, avgFollowup: 21.1, avgTransport: 46,
@@ -1880,11 +2065,11 @@ const FY_CONFIG = {
     data: D25
   },
   '26': {
-    avgResponse: 22, avgDuration: 29, avgFollowup: 16, avgTransport: 36,
-    dateRange: 'Jul 2025–May 2026',
-    months: ["Jul 25", "Aug 25", "Sep 25", "Oct 25", "Nov 25", "Dec 25", "Jan 26", "Feb 26", "Mar 26", "Apr 26", "May 26"],
-    qidx: {"ytd": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "q1": [0, 1, 2], "q2": [3, 4, 5], "q3": [6, 7, 8], "q4": [9, 10]},
-    qlabels: {"ytd": "Jul 2025 \u2013 May 2026", "q1": "Q1: Jul \u2013 Sep 2025", "q2": "Q2: Oct \u2013 Dec 2025", "q3": "Q3: Jan \u2013 Mar 2026", "q4": "Q4 (partial): Apr \u2013 May 2026"},
+    avgResponse: 19, avgDuration: 29, avgFollowup: 16, avgTransport: 34,
+    dateRange: 'Jul 2025–Jun 2026',
+    months: ["Jul 25", "Aug 25", "Sep 25", "Oct 25", "Nov 25", "Dec 25", "Jan 26", "Feb 26", "Mar 26", "Apr 26", "May 26", "Jun 26"],
+    qidx: {"ytd": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "q1": [0, 1, 2], "q2": [3, 4, 5], "q3": [6, 7, 8], "q4": [9, 10, 11]},
+    qlabels: {"ytd": "Jul 2025 \u2013 Jun 2026", "q1": "Q1: Jul \u2013 Sep 2025", "q2": "Q2: Oct \u2013 Dec 2025", "q3": "Q3: Jan \u2013 Mar 2026", "q4": "Q4: Apr \u2013 Jun 2026"},
     data: null // populated from D26 backup in init
   }
 };
@@ -1900,14 +2085,19 @@ const CALL_TIME_CONFIG = {
     dateRange: 'July 2024–June 2025'
   },
   '26': {
-    responseAvg: 22,
+    responseAvg: 19,
     responseMedian: 14,
     callAvg: 29,
     callMedian: 11,
-    queueAvg: 12,
+    queueAvg: 8,
     queueMedian: 4,
     initialEngagementAvg: 16,
-    dateRange: 'July 2025–May 2026'
+    dateRange: 'July 2025–June 2026',
+    // Verified 2026-08-05 against WeHo_Care_Monthly_Report_June_2026.xlsx FYTD column.
+    // Not available for FY25 in this conversation — the range widget hides itself for FY25.
+    responseMin: 0, responseMax: 810,
+    callMin: 1, callMax: 1420,
+    queueMin: 0, queueMax: 1435
   }
 };
 
