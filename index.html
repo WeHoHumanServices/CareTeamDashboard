@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>West Hollywood Care Team — Program Dashboard FY 2025–26</title>
+<title>West Hollywood Care Team — Program Dashboard FY 2025–27</title>
 <style>
   /* ═══════════════════════════════════════════════════════
      DESIGN TOKENS  (aligned with WeHo Homeless Initiative dashboard)
@@ -139,6 +139,7 @@
     border-radius: var(--radius); padding: 8px 16px;
     font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
     letter-spacing: .15px; box-shadow: 0 1px 3px rgba(0,30,90,.07);
+    font-family: inherit;
     transition: background .14s ease, color .14s ease, border-color .14s ease, box-shadow .14s ease, transform .12s ease;
   }
   .page-tab:hover { background:#f0f5ff; color:var(--blue); border-color:#a8c0e0; box-shadow:0 2px 8px rgba(0,48,135,.12); transform:translateY(-1px); }
@@ -159,6 +160,67 @@
     font-size: 13.5px;
     color: var(--body);
     line-height: 1.62;
+  }
+
+  /* ── DATA NOTE (reusable methodology-caveat treatment; use sparingly) ── */
+  .data-note {
+    background: var(--blue5);
+    border-radius: 8px;
+    padding: 9px 13px;
+    font-size: 12px;
+    color: var(--body);
+    line-height: 1.55;
+  }
+  .data-note strong { color: var(--heading); }
+
+  /* ── ABOUT THIS DATA (methodology, expandable) ── */
+  .about-data {
+    max-width: var(--maxw); margin: 18px auto 0; border: 1px solid var(--line);
+    border-radius: var(--radius); background: var(--card);
+  }
+  .about-data summary {
+    cursor: pointer; padding: 12px 18px; font-size: 13px; font-weight: 700;
+    color: var(--heading); list-style: none; display: flex; align-items: center; gap: 8px;
+    user-select: none;
+  }
+  .about-data summary::-webkit-details-marker { display: none; }
+  .about-data summary::before {
+    content: '›'; display: inline-block; font-size: 16px; font-weight: 700; color: var(--muted);
+    transition: transform .15s ease; transform: rotate(0deg);
+  }
+  .about-data[open] summary::before { transform: rotate(90deg); }
+  .about-data summary:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; border-radius: 6px; }
+  .about-data-body { padding: 4px 18px 18px; font-size: 12.5px; color: var(--body); line-height: 1.6; }
+  .about-data-body h4 {
+    font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
+    color: var(--muted); margin: 14px 0 4px;
+  }
+  .about-data-body h4:first-child { margin-top: 0; }
+  .about-data-body ul { margin: 4px 0 0; padding-left: 18px; }
+  .about-data-body li { margin-bottom: 4px; }
+  .about-data-updated { font-size: 11.5px; color: var(--muted); margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+
+  /* ── CHART DATA TABLE (accessible text equivalent for canvas charts) ── */
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
+  .data-table-toggle {
+    background: none; border: none; color: var(--blue2); font-size: 12px; font-weight: 700;
+    cursor: pointer; padding: 6px 2px; margin-top: 6px; display: inline-flex; align-items: center;
+    gap: 5px; font-family: inherit;
+  }
+  .data-table-toggle:hover { text-decoration: underline; }
+  .data-table-toggle:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; border-radius: 4px; }
+  .data-table-toggle .dt-icon { font-size: 10px; display: inline-block; transition: transform .15s ease; }
+  .data-table-toggle[aria-expanded="true"] .dt-icon { transform: rotate(90deg); }
+  .chart-data-table-wrap { margin-top: 6px; overflow-x: auto; }
+  .chart-data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .chart-data-table th, .chart-data-table td { text-align: left; padding: 5px 10px; border-bottom: 1px solid var(--line-soft); }
+  .chart-data-table th { font-weight: 700; color: var(--heading); background: var(--bg); }
+  .chart-data-table td:not(:first-child), .chart-data-table th:not(:first-child) { text-align: right; }
+  @media (prefers-reduced-motion: reduce) {
+    .data-table-toggle .dt-icon, .about-data summary::before { transition: none; }
   }
 
   /* ── LAYOUT ── */
@@ -261,7 +323,7 @@
   .stat-table tr:last-child td { border-bottom: none; }
   .stat-table .row-indent td:first-child { color: var(--muted); padding-left: 22px; font-size: 12.5px; }
   .stat-table .row-indent td:last-child { color: var(--muted); font-size: 12.5px; font-weight: 700; }
-  .stat-table .row-group td { background: #f2f7ff; font-weight: 800; font-size: 11.5px; color: var(--blue); text-transform: uppercase; letter-spacing: .6px; padding-top: 11px; border-bottom: none; }
+  .stat-table .row-group td { background: #f2f7ff; font-weight: 800; font-size: 11.5px; color: var(--blue); text-transform: uppercase; letter-spacing: .6px; padding-top: 11px; border-bottom: none; white-space: normal; text-align: left; }
   .stat-table .row-group:hover td { background: #f2f7ff; }
 
   /* ── SECTION NOTE ── */
@@ -406,6 +468,14 @@
     .chart-card, .kpi, .flow-card, .page-context { box-shadow: none !important; border: 1px solid #dce3ef; }
     .chart-card:hover, .kpi:hover, .flow-card:hover { transform: none; }
     body { background: #fff; }
+    /* Data-table toggles are meaningless on paper — show the tables outright, hide the button */
+    .data-table-toggle { display: none !important; }
+    .chart-data-table-wrap[hidden] { display: block !important; }
+    /* Methodology section: show fully expanded, hide the interactive summary marker */
+    .about-data { border: 1px solid #dce3ef; box-shadow: none !important; }
+    .about-data summary { pointer-events: none; }
+    .about-data summary::before { display: none; }
+    .about-data:not([open]) .about-data-body { display: block !important; }
   }
 </style>
 </head>
@@ -416,12 +486,13 @@
  <div class="header-inner">
   <div>
     <div class="header-title">West Hollywood Care Team</div>
-    <div class="header-sub">FY 2025–2026 Program Performance Dashboard</div>
+    <div class="header-sub">FY 2025–2027 Program Performance Dashboard</div>
   </div>
   <div class="header-right">
     <span class="fy-label">Fiscal Year</span>
     <button id="btn-fy25" class="fy-btn" onclick="switchFY('25')">FY 2025</button>
-    <button id="btn-fy26" class="fy-btn active" onclick="switchFY('26')">FY 2026</button>
+    <button id="btn-fy26" class="fy-btn" onclick="switchFY('26')">FY 2026</button>
+    <button id="btn-fy27" class="fy-btn active" onclick="switchFY('27')">FY 2027</button>
   </div>
  </div>
 </div>
@@ -446,11 +517,11 @@
 
 <!-- PAGE NAV -->
 <div class="page-nav">
- <div class="page-nav-inner">
-  <div class="page-tab active" role="tab" aria-selected="true" aria-controls="page-overview" tabindex="0" onclick="showPage('overview',this)" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('overview',this)">Overview</div>
-  <div class="page-tab" role="tab" aria-selected="false" aria-controls="page-demographics" tabindex="0" onclick="showPage('demographics',this)" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('demographics',this)">Demographics</div>
-  <div class="page-tab" role="tab" aria-selected="false" aria-controls="page-calls" tabindex="0" onclick="showPage('calls',this)" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('calls',this)">Call Analysis</div>
-  <div class="page-tab" role="tab" aria-selected="false" aria-controls="page-outcomes" tabindex="0" onclick="showPage('outcomes',this)" onkeydown="if(event.key==='Enter'||event.key===' ')showPage('outcomes',this)">Outcomes</div>
+ <div class="page-nav-inner" role="tablist" aria-label="Dashboard pages" onkeydown="handleTabKeydown(event)">
+  <button type="button" class="page-tab active" role="tab" id="tab-overview" aria-selected="true" aria-controls="page-overview" tabindex="0" onclick="showPage('overview',this)">Overview</button>
+  <button type="button" class="page-tab" role="tab" id="tab-demographics" aria-selected="false" aria-controls="page-demographics" tabindex="-1" onclick="showPage('demographics',this)">Demographics</button>
+  <button type="button" class="page-tab" role="tab" id="tab-calls" aria-selected="false" aria-controls="page-calls" tabindex="-1" onclick="showPage('calls',this)">Call Analysis</button>
+  <button type="button" class="page-tab" role="tab" id="tab-outcomes" aria-selected="false" aria-controls="page-outcomes" tabindex="-1" onclick="showPage('outcomes',this)">Outcomes</button>
  </div>
 </div>
 
@@ -458,13 +529,13 @@
      PAGE: OVERVIEW
 ═══════════════════════════════════════════ -->
 <div class="content">
-<div class="page active" id="page-overview">
+<div class="page active" id="page-overview" role="tabpanel" aria-labelledby="tab-overview" tabindex="0">
 
-  <div class="page-context">
+  <div class="page-context" id="overview-context">
     Call volume peaked in March 2026 and eased for four straight months through June, the close of the fiscal year. The referral mix shifted markedly over the year: self-referrals drove much of the mid-year growth, peaking at 108 in March, but fell to 16 by June — while calls from the Homeless Concern Line climbed for most of the year, reaching a high of 100 in May before easing slightly to 77 in June, ending the year as the single largest referral source. Housing and basic needs remain the top presenting issues.
   </div>
 
-  <div class="flow-cards-wrap"><div class="flow-cards-heading" id="flow-cards-heading">Care Team activity</div><div id="flow-cards" class="flow-cards"></div><p class="flow-cards-note" id="transport-note">FY 2025 transport counts reflect logged transports to a remote resource or location. Transport counts are shown separately from follow-up contacts.</p></div>
+  <div class="flow-cards-wrap"><div class="flow-cards-heading" id="flow-cards-heading">Care Team activity</div><div id="flow-cards" class="flow-cards"></div><p class="data-note" id="transport-note" style="margin-top:10px;">FY 2025 transport counts reflect logged transports to a remote resource or location. Transport counts are shown separately from follow-up contacts.</p></div>
   <div class="kpi-row kpi-4" id="kpi-overview-bot"></div>
 
   <div class="chart-card full" style="margin-bottom:18px;">
@@ -474,7 +545,8 @@
       <span><span class="legend-swatch" style="background:#003087;"></span>Calls responded to</span>
       <span><span class="legend-swatch" style="background:#5B9BD5;"></span>Follow-up check-ins</span>
     </div>
-    <canvas id="c-trend" height="200"></canvas>
+    <canvas id="c-trend" height="200" role="img" aria-label="Chart of monthly calls and follow-ups; see the data table below for exact values"></canvas>
+    <div id="c-trend-dt"></div>
   </div>
 
   <div class="half-grid">
@@ -494,9 +566,9 @@
 <!-- ═══════════════════════════════════════════
      PAGE: DEMOGRAPHICS
 ═══════════════════════════════════════════ -->
-<div class="page" id="page-demographics">
+<div class="page" id="page-demographics" role="tabpanel" aria-labelledby="tab-demographics" tabindex="0">
 
-  <div class="page-context">
+  <div class="page-context" id="demographics-context">
     Most people served were adults ages 25–64, and a majority were experiencing homelessness.
   </div>
 
@@ -506,22 +578,26 @@
     <div class="chart-card">
       <div class="chart-title" id="age-title">Age groups</div>
       <div class="chart-note" id="age-note">Total by age group across the selected fiscal year</div>
-      <canvas id="c-age" height="220"></canvas>
+      <canvas id="c-age" height="220" role="img" aria-label="Chart of people served by age group; see the data table below for exact values"></canvas>
+      <div id="c-age-dt"></div>
     </div>
     <div class="chart-card">
       <div class="chart-title" id="race-title">Race / ethnicity</div>
       <div class="chart-note" id="race-note">Total by race/ethnicity across the selected fiscal year</div>
-      <canvas id="c-race" height="220"></canvas>
+      <canvas id="c-race" height="220" role="img" aria-label="Chart of people served by race and ethnicity; see the data table below for exact values"></canvas>
+      <div id="c-race-dt"></div>
     </div>
     <div class="chart-card">
       <div class="chart-title" id="gender-title">Gender</div>
       <div class="chart-note" id="gender-note">Share by gender identity across the selected fiscal year</div>
-      <canvas id="c-gender" height="220"></canvas>
+      <canvas id="c-gender" height="220" role="img" aria-label="Donut chart of people served by gender; see the data table below for exact values"></canvas>
+      <div id="c-gender-dt"></div>
     </div>
     <div class="chart-card">
       <div class="chart-title" id="housing-title">Housing status</div>
       <div class="chart-note" id="housing-note">Share by housing status across the selected fiscal year</div>
-      <canvas id="c-housing-donut" height="240"></canvas>
+      <canvas id="c-housing-donut" height="240" role="img" aria-label="Donut chart of people served by housing status; see the data table below for exact values"></canvas>
+      <div id="c-housing-donut-dt"></div>
     </div>
     <div class="chart-card full">
       <div class="chart-title">Housing status of contacts over time</div>
@@ -530,7 +606,8 @@
         <span><span class="legend-swatch" style="background:#003087;"></span>Unhoused</span>
         <span><span class="legend-swatch" style="background:#5B9BD5;"></span>Housed</span>
       </div>
-      <canvas id="c-housing" height="180"></canvas>
+      <canvas id="c-housing" height="180" role="img" aria-label="Chart of housing status by month; see the data table below for exact values"></canvas>
+      <div id="c-housing-dt"></div>
     </div>
   </div>
 
@@ -539,9 +616,9 @@
 <!-- ═══════════════════════════════════════════
      PAGE: CALL ANALYSIS
 ═══════════════════════════════════════════ -->
-<div class="page" id="page-calls">
+<div class="page" id="page-calls" role="tabpanel" aria-labelledby="tab-calls" tabindex="0">
 
-  <div class="page-context">
+  <div class="page-context" id="calls-context">
     Activity peaks midweek, particularly in public spaces and afternoon hours.
   </div>
 
@@ -549,12 +626,14 @@
     <div class="chart-card">
       <div class="chart-title">Calls by day</div>
       <div class="chart-note">Which days saw the most calls. The darkest bar is the busiest day.</div>
-      <canvas id="c-dow" height="220"></canvas>
+      <canvas id="c-dow" height="220" role="img" aria-label="Chart of calls by day of week; see the data table below for exact values"></canvas>
+      <div id="c-dow-dt"></div>
     </div>
     <div class="chart-card">
       <div class="chart-title">Calls by time of day</div>
       <div class="chart-note">Which 2-hour windows had the most calls. Darkest bars are the busiest periods.</div>
-      <canvas id="c-tod" height="220"></canvas>
+      <canvas id="c-tod" height="220" role="img" aria-label="Chart of calls by time of day; see the data table below for exact values"></canvas>
+      <div id="c-tod-dt"></div>
     </div>
     <div class="chart-card">
       <div class="chart-title">Service locations</div>
@@ -585,9 +664,9 @@
 <!-- ═══════════════════════════════════════════
      PAGE: OUTCOMES
 ═══════════════════════════════════════════ -->
-<div class="page" id="page-outcomes">
+<div class="page" id="page-outcomes" role="tabpanel" aria-labelledby="tab-outcomes" tabindex="0">
 
-  <div class="page-context">
+  <div class="page-context" id="outcomes-context">
     Most engagements resulted in service connections. About 98% were resolved without the Care Team needing to request law enforcement or Fire/EMS support.
   </div>
 
@@ -607,7 +686,8 @@
     <div class="chart-card">
       <div class="chart-title">Repeat contacts (same month)</div>
       <div class="chart-note">Contacts logged more than once within the same month. Does not capture repeat encounters where the individual declined to provide identifying information.</div>
-      <canvas id="c-repeat" height="200"></canvas>
+      <canvas id="c-repeat" height="200" role="img" aria-label="Chart of repeat contacts by month; see the data table below for exact values"></canvas>
+      <div id="c-repeat-dt"></div>
     </div>
     <div class="chart-card">
       <div class="chart-title">First responder involvement</div>
@@ -617,6 +697,28 @@
   </div>
 
 </div>
+
+<details class="about-data" id="about-data">
+  <summary>About this data</summary>
+  <div class="about-data-body">
+    <h4>Data source</h4>
+    <div>Sycamores Care Team monthly program reports, provided to the City of West Hollywood.</div>
+
+    <h4>Reporting period</h4>
+    <div id="about-data-period"></div>
+
+    <h4>Data considerations</h4>
+    <ul>
+      <li>Operational measures (calls, referrals, presenting issues, services, response times) are aggregated from monthly program reporting.</li>
+      <li>Some measures represent contacts or encounters, not unduplicated individuals — one person can generate more than one contact, including within the same month.</li>
+      <li>Presenting issues and services may include multiple categories for a single contact, so their shares can add to more than 100%.</li>
+      <li>The unduplicated demographic profile (Demographics page) is a true fiscal-year-to-date figure only for the year-to-date view. Filtering to a quarter or a single month instead sums each month's own unduplicated count, which may include the same individual more than once if they were served in multiple months within that range.</li>
+      <li>Transport destination information reflects locations named in monthly narrative reporting, not a complete transport-by-transport dataset.</li>
+    </ul>
+
+    <div class="about-data-updated">Data last updated: September 23, 2026</div>
+  </div>
+</details>
 
 <div class="dash-footer" id="dash-footer"><div></div></div>
 
@@ -628,33 +730,23 @@
 // ══════════════════════════════════════════════
 // DATA
 // ══════════════════════════════════════════════
-const MONTHS = ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun'];
-let MONTH_LABELS = ['Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26','May 26','Jun 26'];
+const MONTHS = ['Jul'];
+let MONTH_LABELS = ['Jul 26'];
 
-// Quarter index ranges
-let QIDX = { ytd:[0,1,2,3,4,5,6,7,8,9,10,11], q1:[0,1,2], q2:[3,4,5], q3:[6,7,8], q4:[9,10,11] };
-let QLABELS = { ytd:'Jul 2025 – Jun 2026', q1:'Q1: Jul – Sep 2025', q2:'Q2: Oct – Dec 2025', q3:'Q3: Jan – Mar 2026', q4:'Q4: Apr – Jun 2026' };
+// Quarter index ranges — FY27 has only July elapsed so far; Q2/Q3/Q4 aren't included until
+// they have at least one real month (matching how FY26's Q4 grew one month at a time).
+let QIDX = { ytd:[0], q1:[0] };
+let QLABELS = { ytd:'Jul 2026', q1:'Q1 (partial): Jul 2026' };
 
-// All monthly series [Jul,Aug,Sep,Oct,Nov,Dec,Jan,Feb,Mar,Apr,May,Jun]
+// FY 2026 is now closed (complete 12-month year, Jul 2025–Jun 2026) — frozen here as a literal,
+// same treatment as D25. This was previously assembled at page-load by copying whatever was in
+// the live D object; now that FY26 won't be edited again, it's written out directly instead.
 // Values verified against WeHo_Care_Monthly_Report_June_2026.xlsx (Summarized Data tab) on 2026-08-05.
-// FY 2026 is now the complete 12-month fiscal year (Jul 2025–Jun 2026).
-// Row layout shifted by +1 starting at the referral-source section in this month's export — a new
-// "Business" referral category was inserted (Sycamores' own template, not a Claude change). Re-verified
-// every row mapping against labels rather than reusing prior row numbers. 6 small prior-month figures
-// (Mar/Apr 2026) were also revised by Sycamores since the May load — updated to match the newer export.
-const D = {
+const D26 = {
   engagements:       [140,86,73,115,170,200,198,266,325,275,200,155],
   followups:         [234,180,205,211,170,132,135,171,192,226,178,143],
   unique:            [113,83,60,89,132,143,131,171,168,185,135,131],
 
-  // True unduplicated FYTD counts from Sycamores — only available for full YTD, not by quarter
-  // NOTE: still Jul 2025–Apr 2026 (10-month) figures — the source workbook's "Current" tab
-  // (source for unduplicated demographic breakdowns) has been blank/unpopulated for three
-  // months running (Apr/May/Jun exports). Flagged for Sycamores — needed before this can update.
-  FYTD_unique:       966,
-  FYTD_unhoused:     772,
-  FYTD_housed:       142,
-  FYTD_dts:          52,
   repeats:           [14,5,7,15,14,20,19,26,28,27,25,16],
   transports:        [16,20,16,15,25,9,17,23,19,11,16,18],
 
@@ -691,11 +783,10 @@ const D = {
   refWeHoStaff:      [3,2,1,8,7,6,5,8,15,7,1,1],
   refFriendFam:      [0,0,0,0,5,2,4,10,7,9,6,7],
   refFireEMS:        [2,0,3,1,1,2,4,2,4,1,2,2],
-  // Added 2026-08-05: previously-untracked referral categories.
   refDMH:               [0,1,0,2,2,1,2,2,4,2,0,1],
-  refConcernedCommunity:[0,0,0,0,0,0,0,0,0,3,1,0], // new category, Sycamores began collecting Apr 2026
-  refLibrary:           [0,0,0,0,0,0,0,0,0,1,0,0], // new category, Sycamores began collecting Apr 2026
-  refBusiness:          [0,0,0,0,0,0,0,0,0,0,0,1], // new category, Sycamores began collecting Jun 2026
+  refConcernedCommunity:[0,0,0,0,0,0,0,0,0,3,1,0],
+  refLibrary:           [0,0,0,0,0,0,0,0,0,1,0,0],
+  refBusiness:          [0,0,0,0,0,0,0,0,0,0,0,1],
 
   presBasicNeeds:    [83,59,38,73,100,95,99,143,170,150,132,85],
   presHousing:       [87,37,35,64,98,100,100,138,182,169,102,93],
@@ -703,7 +794,6 @@ const D = {
   presHealth:        [11,7,8,7,21,16,21,24,31,29,15,5],
   presSubUse:        [9,4,9,7,10,12,8,21,23,11,8,7],
   presCrisis:        [5,4,3,4,7,10,10,16,23,13,7,12],
-  // Added 2026-07-09: previously tracked in the source but not charted on the public dashboard.
   presSuicideRisk:   [1,0,0,2,1,0,3,3,1,3,4,0],
   presDangerOthers:  [0,0,0,0,0,1,1,1,1,0,0,0],
 
@@ -713,8 +803,6 @@ const D = {
   locPrivRes:        [10,7,6,5,3,10,18,13,18,13,11,9],
   locBusiness:       [8,9,5,3,3,1,6,5,4,9,12,6],
   locOther:          [1,5,1,5,5,5,4,4,3,4,3,1],
-  // Added 2026-07-09: previously tracked in the source but not charted (dropped from the
-  // Service Locations total rather than folded into "Other").
   locED:             [2,0,0,1,0,0,7,2,1,1,2,0],
   locHolloway:       [0,0,0,1,1,1,0,0,3,1,0,0],
 
@@ -754,16 +842,128 @@ const D = {
   frLACFDHoused:     [1,0,1,0,0,0,0,1,0,0,0,0],
   frLACFDUnhoused:   [0,1,1,0,0,0,5,1,0,0,1,0],
   frLACFDDTS:        [0,0,0,0,0,1,1,1,0,0,0,0],
-  // CORRECTED 2026-07-09: frHoldsApplied now reflects the source's true "Total number of
-  // involuntary hold applications (5585/5150)" row rather than the FIT-assessment-request row
-  // it was previously (incorrectly) populated from. frFITRequests tracks that request count
-  // separately.
   frFITRequests:     [0,0,0,1,1,0,1,0,1,3,1,0],
   frHoldsApplied:    [1,0,0,1,0,1,0,2,1,0,0,0],
   frHoldsVoided:     [0,0,0,0,0,1,0,0,0,0,0,0],
 
   onSceneUnique:     [98,71,55,77,102,100,107,125,118,127,110,109],
   fuUnique:          [131,100,102,116,108,96,85,110,123,132,102,86],
+};
+
+// FY 2027 begins — the live, actively-edited dataset. Starts with July 2026 only; grows one
+// month at a time with each monthly update, the same way FY26 did.
+// Values verified against WeHo_Care_Monthly_Report_July_2026.xlsx (Summarized Data tab) on 2026-09-23.
+// Row layout matches June 2026's export exactly (including the "Business" referral category
+// added that month), so the same label-verified row mapping was reused directly.
+const D = {
+  engagements:       [133],
+  followups:         [167],
+  unique:             [109],
+
+  // FY27 has no separate unduplicated-FYTD override yet — at 1 month, the monthly figure and
+  // a true cross-month dedup are identical anyway. Once FY27 has 2+ months, pull the real
+  // total the same way FY26's was corrected: the source workbook's "Summarized Data" tab has
+  // its own FYTD column specifically for the age/gender/race/housing rows that is itself a
+  // genuine deduplicated running count (see D_demo below) — it is NOT blocked by the
+  // separate "Current" tab being blank, which is a different, unrelated part of the workbook.
+  repeats:           [14],
+  transports:        [5],
+
+  ageU17:            [0],
+  age1834:           [19],
+  age3549:           [28],
+  age5064:           [18],
+  age6579:           [16],
+  age80p:            [2],
+  ageDTS:            [26],
+
+  genderMale:        [66],
+  genderFemale:      [42],
+  genderDTS:         [1],
+
+  raceAsian:         [4],
+  raceBlack:         [30],
+  raceHispanic:      [13],
+  raceWhite:         [46],
+  raceOther:         [2],
+  raceDTS:           [14],
+
+  housingHoused:     [15],
+  housingUnhoused:   [89],
+  housingDTS:        [6],
+
+  refAmbassadors:    [10],
+  refSycamores:      [15],
+  refSelf:           [18],
+  refHCL:            [59],
+  refLawEnf:         [16],
+  refOther:          [1],
+  refWeHoAgency:     [5],
+  refWeHoStaff:      [4],
+  refFriendFam:      [2],
+  refFireEMS:        [1],
+  refDMH:               [0],
+  refConcernedCommunity:[2],
+  refLibrary:           [0],
+  refBusiness:          [0],
+
+  presBasicNeeds:    [70],
+  presHousing:       [83],
+  presWelfare:       [39],
+  presHealth:        [2],
+  presSubUse:        [1],
+  presCrisis:        [6],
+  presSuicideRisk:   [2],
+  presDangerOthers:  [0],
+
+  locPublic:         [97],
+  locTelephone:      [13],
+  locSheriff:        [4],
+  locPrivRes:        [14],
+  locBusiness:       [2],
+  locOther:          [1],
+  locED:             [1],
+  locHolloway:       [1],
+
+  dowSun: [20],
+  dowMon: [8],
+  dowTue: [20],
+  dowWed: [22],
+  dowThu: [18],
+  dowFri: [25],
+  dowSat: [20],
+
+  tod: [[13],[8],[1],[5],[18],[19],[15],[19],[10],[12],[9],[4]],
+
+  onSceneSupplies:   [47],
+  onSceneShelter:    [38],
+  onSceneFood:       [8],
+  onSceneHealth:     [4],
+  onSceneTransCoord: [4],
+  onSceneSUD:        [1],
+  onSceneMH:         [3],
+
+  fuShelter:         [51],
+  fuDeclined:        [56],
+  fuFood:            [20],
+  fuHealth:          [12],
+  fuMH:              [10],
+  fuSUD:             [5],
+
+  frLASD:            [2],
+  frLASDHoused:      [0],
+  frLASDUnhoused:    [2],
+  frLASDDTS:         [0],
+  frLACFD:           [1],
+  frLACFDHoused:     [0],
+  frLACFDUnhoused:   [1],
+  frLACFDDTS:        [0],
+  frFITRequests:     [0],
+  frHoldsApplied:    [1],
+  frHoldsVoided:     [0],
+
+  onSceneUnique:     [78],
+  fuUnique:          [106],
 };
 
 // Free-text "Destination of transport" field from the source workbook, one entry per FY26
@@ -785,31 +985,47 @@ const TRANSPORT_DEST_26 = [
   ["Downtown LA Hotel","Hostel","Southern California Hospital Culver City","Wilshire","Culver City","Sea Shore Motel"]
 ];
 
+// Same field for FY27, one entry per month starting July 2026. Verified 2026-09-23 against
+// WeHo_Care_Monthly_Report_July_2026.xlsx.
+const TRANSPORT_DEST_27 = [
+  ["Hollywood","Hospital Culver City"]
+];
 
-// ── FYTD UNDUPLICATED DEMOGRAPHIC DATA (966 unique individuals, Jul 2025–Apr 2026) ──
-// NOT yet updated for May 2026 — source "Current" tab was blank in this month's workbook.
+
+// ── FYTD UNDUPLICATED DEMOGRAPHIC DATA — FY 2026, complete year (Jul 2025–Jun 2026) ──
+// CORRECTED 2026-09-23. Previously documented (incorrectly) as stuck at 966 / Jul 2025–Apr
+// 2026 because the source workbook's "Current" tab has been blank since April. That tab is
+// NOT actually where this figure comes from: the "Summarized Data" tab's own FYTD column,
+// specifically for the age/gender/race/housing rows, is itself a genuine running unduplicated
+// count — its own header note says so ("FYTD counts are based on unduplicated consumers for
+// the fiscal year to date"), and it is visibly deduplicated (e.g. the 18–34 bracket sums to
+// 322 across individual months but FYTD reads 248). Verified this progresses smoothly month
+// to month — 966 (Apr) → 1,066 (May) → 1,167 (Jun, the final complete-year figure) — and that
+// all four breakdowns (age/gender/race/housing) independently sum to the same total in every
+// month checked, which is strong evidence this is the correct, intended source. Re-verified
+// directly against WeHo_Care_Monthly_Report_June_2026.xlsx (Summarized Data tab, FYTD column).
 let D_demo = {
-  ageU17:       6,
-  age1834:      203,
-  age3549:      263,
-  age5064:      186,
-  age6579:      71,
-  age80p:       9,
-  ageDTS:       228,
-  genderMale:   710,
-  genderFemale: 244,
-  genderDTS:    12,
-  raceAsian:    18,
-  raceBlack:    246,
-  raceHispanic: 168,
-  raceWhite:    383,
-  raceOther:    64,
-  raceDTS:      87,
-  housingHoused:   142,
-  housingUnhoused: 772,
-  housingDTS:      52,
+  ageU17:       5,
+  age1834:      248,
+  age3549:      316,
+  age5064:      220,
+  age6579:      87,
+  age80p:       11,
+  ageDTS:       280,
+  genderMale:   842,
+  genderFemale: 312,
+  genderDTS:    13,
+  raceAsian:    26,
+  raceBlack:    299,
+  raceHispanic: 199,
+  raceWhite:    469,
+  raceOther:    70,
+  raceDTS:      104,
+  housingHoused:   177,
+  housingUnhoused: 932,
+  housingDTS:      58,
 };
-let DEMO_TOTAL = 966;
+let DEMO_TOTAL = 1167;
 
 
 // ── FY 2025 DATA (Jul 2024 – Jun 2025) ──
@@ -894,10 +1110,8 @@ const D25 = {
   raceWhite: [49, 64, 52, 63, 44, 56, 37, 34, 35, 49, 50, 47],
   raceOther: [7, 8, 7, 5, 8, 5, 1, 1, 2, 8, 8, 6],
   raceDTS: [6, 3, 6, 5, 5, 7, 7, 3, 7, 9, 8, 0],
-  FYTD_unique: 0,
-  FYTD_unhoused: 0,
-  FYTD_housed: 0,
-  FYTD_dts: 0,
+  // FY25 has no unduplicated-FYTD override — no FY25 source workbook was available in this
+  // conversation to verify whether the same "Summarized Data" FYTD-column technique applies.
   tod: [[6, 5, 12, 21, 13, 19, 4, 11, 8, 14, 31, 13], [3, 5, 2, 17, 8, 6, 2, 4, 8, 4, 17, 6], [3, 2, 2, 3, 3, 8, 0, 2, 3, 8, 5, 5], [22, 17, 23, 7, 10, 13, 9, 1, 3, 4, 1, 0], [17, 18, 27, 23, 8, 19, 9, 3, 2, 6, 14, 6], [15, 7, 4, 7, 6, 12, 4, 0, 2, 9, 8, 3], [1, 16, 7, 0, 6, 9, 4, 0, 1, 5, 5, 11], [18, 2, 15, 15, 21, 14, 10, 6, 16, 6, 16, 16], [40, 46, 18, 20, 18, 10, 14, 10, 14, 18, 6, 11], [12, 26, 5, 9, 9, 15, 8, 14, 7, 6, 13, 12], [18, 22, 8, 9, 10, 7, 8, 5, 7, 6, 3, 7], [16, 12, 9, 16, 8, 17, 14, 17, 23, 29, 24, 24]],
 
   // Zero-filled 2026-08-05: these fields were added for FY26 and have no equivalent FY25 source
@@ -917,12 +1131,12 @@ const D25 = {
 };
 
 
-// Backup FY26 data for toggle
-var D26 = {};
+// Backup FY27 data for toggle (the live, currently-growing year; FY25/26 are closed and hardcoded)
+var D27 = {};
 // ── HELPERS ──
 let selectedMonths = null; // null = all months (YTD). Otherwise an array of month indices, e.g. [0,1,2] or [9].
 let currentPage = 'overview';
-let currentFY = '26'; // '25' or '26'
+let currentFY = '27'; // '25', '26', or '27'
 
 function sum(arr, idxs) {
   return idxs.reduce((t,i) => t + (arr[i] || 0), 0);
@@ -989,7 +1203,135 @@ function periodLabel() {
   return idx.map(function(i){ return MONTH_LABELS[i]; }).join(', ');
 }
 
-// ── MONTH FILTER ──
+// ── DYNAMIC NARRATIVE HELPERS ──
+// Rule-based (not AI-generated) short descriptions of whatever period is currently selected,
+// so page-context banners never reference months, peaks, or trends outside the active filter.
+// Full-fiscal-year views keep their own hand-checked narrative text (see each render function);
+// these helpers only run for quarters, single months, or custom multi-month selections.
+
+function capitalize1(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function topItem(items) {
+  let best = null;
+  items.forEach(it => { if (it.val > 0 && (!best || it.val > best.val)) best = it; });
+  return best;
+}
+
+function referralNarrativeItems() {
+  return [
+    {label:'Ambassadors', val:periodSum('refAmbassadors')},
+    {label:'Sycamores outreach', val:periodSum('refSycamores')},
+    {label:'self-referrals', val:periodSum('refSelf')},
+    {label:'the Homeless Concern Line', val:periodSum('refHCL')},
+    {label:'law enforcement', val:periodSum('refLawEnf')},
+    {label:'other City agencies', val:periodSum('refWeHoAgency')},
+    {label:'City staff', val:periodSum('refWeHoStaff')},
+    {label:'friends or family', val:periodSum('refFriendFam')},
+    {label:'Fire/EMS', val:periodSum('refFireEMS')},
+  ];
+}
+
+function presentingNarrativeItems() {
+  return [
+    {label:'basic needs', val:periodSum('presBasicNeeds')},
+    {label:'housing', val:periodSum('presHousing')},
+    {label:'welfare checks', val:periodSum('presWelfare')},
+    {label:'health', val:periodSum('presHealth')},
+    {label:'substance use', val:periodSum('presSubUse')},
+    {label:'crisis intervention', val:periodSum('presCrisis')},
+  ];
+}
+
+// Overview page: activity level, peak month (if more than one month is selected), leading
+// presenting issue and referral source — all computed from only the selected period.
+function buildPeriodActivityNarrative() {
+  const idx = monthsInPeriod();
+  const eng = periodSum('engagements');
+  if (eng === 0) return 'No activity recorded for this period.';
+  const mLabels = periodMonthLabels();
+  const mEng = periodMonthData('engagements');
+  const topRef = topItem(referralNarrativeItems());
+  const topPres = topItem(presentingNarrativeItems());
+
+  let sentence;
+  if (idx.length === 1) {
+    sentence = 'In ' + mLabels[0] + ', the Care Team responded to ' + fmt(eng) + ' calls.';
+  } else {
+    const maxVal = Math.max.apply(null, mEng);
+    const peakIdx = mEng.indexOf(maxVal);
+    const first = mEng[0], last = mEng[mEng.length - 1];
+    let movement;
+    if (first === 0 || Math.abs(last - first) / Math.max(first, 1) < 0.15) {
+      movement = 'stayed relatively steady';
+    } else if (last > first) {
+      movement = 'rose';
+    } else {
+      movement = 'eased';
+    }
+    sentence = 'Over ' + periodLabel() + ', call volume ' + movement +
+      ', with ' + mLabels[peakIdx] + ' the busiest month (' + fmt(maxVal) + ' calls).';
+  }
+  const parts = [];
+  if (topPres) parts.push(capitalize1(topPres.label) + ' was the leading presenting issue');
+  if (topRef) parts.push((topPres ? topRef.label : capitalize1(topRef.label)) + ' was the leading referral source');
+  if (parts.length) sentence += ' ' + parts.join(', and ') + '.';
+  return sentence;
+}
+
+// Call Analysis page: busiest day of week (only called out if genuinely more than an even
+// split across the week would predict) and the dominant service location.
+function buildCallsPatternNarrative() {
+  const idx = monthsInPeriod();
+  const dowKeys = ['dowSun','dowMon','dowTue','dowWed','dowThu','dowFri','dowSat'];
+  const dowLabels = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const dowVals = dowKeys.map(k => periodSum(k));
+  const totalDow = dowVals.reduce((a,b)=>a+b, 0);
+  if (totalDow === 0) return 'No call activity recorded for this period.';
+  const maxDow = Math.max.apply(null, dowVals);
+  const topDowIdx = dowVals.indexOf(maxDow);
+  const evenShare = totalDow / 7;
+  const dayIsNotable = maxDow > evenShare * 1.25;
+
+  const locItems = [
+    {label:'public spaces', val:periodSum('locPublic')},
+    {label:'by telephone', val:periodSum('locTelephone')},
+    {label:'at private residences', val:periodSum('locPrivRes')},
+    {label:'at businesses', val:periodSum('locBusiness')},
+  ];
+  const topLoc = topItem(locItems);
+
+  let sentence = dayIsNotable
+    ? (idx.length === 1 ? dowLabels[topDowIdx] + ' saw the most activity within this month' : 'Activity peaks on ' + dowLabels[topDowIdx] + 's')
+    : 'Activity is fairly evenly spread across the week for this period';
+  if (topLoc) sentence += ', particularly ' + topLoc.label + '.';
+  else sentence += '.';
+  return sentence;
+}
+
+// Demographics page: whether adults 18–64 make up most of those served, and whether a
+// majority were unhoused — computed from whichever source (true FYTD dedup vs. summed
+// monthly counts) actually backs the current view, same rule buildDemoBase() below uses.
+function buildDemographicsNarrative() {
+  const useDemoFYTD = currentFY === '26' && isYTD();
+  const ageKeys = ['ageU17','age1834','age3549','age5064','age6579','age80p','ageDTS'];
+  const ageVals = useDemoFYTD ? ageKeys.map(k => D_demo[k]) : ageKeys.map(k => periodSum(k));
+  const total = ageVals.reduce((a,b)=>a+b, 0);
+  if (total === 0) return 'No demographic data recorded for this period.';
+  const midAgeShare = (ageVals[1] + ageVals[2] + ageVals[3]) / total;
+
+  const unhoused = useDemoFYTD ? D_demo.housingUnhoused : periodSum('housingUnhoused');
+  const housed = useDemoFYTD ? D_demo.housingHoused : periodSum('housingHoused');
+  const dts = useDemoFYTD ? D_demo.housingDTS : periodSum('housingDTS');
+  const hTotal = unhoused + housed + dts;
+  const unhousedShare = hTotal ? unhoused / hTotal : 0;
+
+  let sentence = midAgeShare > 0.5 ? 'Most people served were adults ages 18–64' : 'People served spanned a range of ages';
+  if (hTotal && unhousedShare > 0.5) sentence += ', and a majority were experiencing homelessness.';
+  else if (hTotal) sentence += '.';
+  return sentence;
+}
+
+
 function setMonths(idxArray) {
   selectedMonths = (!idxArray || idxArray.length === 0 || idxArray.length === MONTH_LABELS.length) ? null : idxArray.slice();
   renderPeriodControls();
@@ -1070,13 +1412,35 @@ function showPage(id, el) {
   document.querySelectorAll('.page-tab').forEach(t => {
     t.classList.remove('active');
     t.setAttribute('aria-selected','false');
+    t.setAttribute('tabindex','-1');
   });
   document.getElementById('page-'+id).classList.add('active');
   el.classList.add('active');
   el.setAttribute('aria-selected','true');
+  el.setAttribute('tabindex','0');
   destroyCharts();
   renderCurrentPage();
   setTimeout(function(){animateKPIs(null);initExpandableKPIs();},80);
+}
+
+// Left/Right (and Home/End) move focus between tabs and activate the newly-focused one,
+// matching standard ARIA tablist keyboard behavior. Enter/Space activation and click come
+// for free from using real <button> elements.
+function handleTabKeydown(event) {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.page-tab'));
+  var currentIndex = tabs.indexOf(document.activeElement);
+  if (currentIndex === -1) return;
+  var nextIndex = null;
+  if (event.key === 'ArrowRight' || event.key === 'ArrowDown') nextIndex = (currentIndex + 1) % tabs.length;
+  else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+  else if (event.key === 'Home') nextIndex = 0;
+  else if (event.key === 'End') nextIndex = tabs.length - 1;
+  else return;
+  event.preventDefault();
+  var next = tabs[nextIndex];
+  next.focus();
+  var id = next.getAttribute('aria-controls').replace('page-','');
+  showPage(id, next);
 }
 
 function renderCurrentPage() {
@@ -1509,6 +1873,42 @@ function roundDisplay(val) { return Math.ceil(Number(val)); }
 // which went stale every few months and were the root cause of "missing" bar labels —
 // the label was being drawn correctly, just positioned above/outside the canvas because the
 // bar itself was taller than a ceiling that hadn't been updated to match the current totals.
+// ── ACCESSIBLE CHART DATA TABLES ──
+// Every canvas chart gets a small "View data table" toggle right underneath it, revealing a
+// plain HTML table with the same values. Hidden by default so it never duplicates visible
+// content; built fresh each render so it always matches the currently selected period.
+function renderChartDataTable(hostId, caption, headers, rows) {
+  const host = document.getElementById(hostId);
+  if (!host) return;
+  const btnId = hostId + '-btn';
+  const tableId = hostId + '-table';
+  const theadHtml = '<tr>' + headers.map(h => '<th scope="col">' + h + '</th>').join('') + '</tr>';
+  const tbodyHtml = rows.map(r =>
+    '<tr>' + r.map((c, i) => i === 0 ? '<th scope="row">' + c + '</th>' : '<td>' + c + '</td>').join('') + '</tr>'
+  ).join('');
+  host.innerHTML =
+    '<button type="button" class="data-table-toggle" id="' + btnId + '" aria-expanded="false" aria-controls="' + tableId + '" onclick="toggleDataTable(\'' + btnId + '\',\'' + tableId + '\')">' +
+      '<span class="dt-icon" aria-hidden="true">\u25B8</span><span class="dt-label">View data table</span>' +
+    '</button>' +
+    '<div class="chart-data-table-wrap" id="' + tableId + '" hidden>' +
+      '<table class="chart-data-table">' +
+        '<caption class="sr-only">' + caption + '</caption>' +
+        '<thead>' + theadHtml + '</thead><tbody>' + tbodyHtml + '</tbody>' +
+      '</table>' +
+    '</div>';
+}
+
+function toggleDataTable(btnId, tableId) {
+  const btn = document.getElementById(btnId);
+  const table = document.getElementById(tableId);
+  if (!btn || !table) return;
+  const expanded = btn.getAttribute('aria-expanded') === 'true';
+  btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+  table.hidden = expanded;
+  var label = btn.querySelector('.dt-label');
+  if (label) label.textContent = expanded ? 'View data table' : 'Hide data table';
+}
+
 function niceAxisMax(values, headroom) {
   headroom = headroom || 1.12;
   const raw = Math.max(...values.filter(v => typeof v === 'number' && !isNaN(v)), 1) * headroom;
@@ -1553,6 +1953,19 @@ function renderOverview() {
   const days = idx.length * 30.4;
   const callRate = roundDisplay(eng / days);
   const followupRate = roundDisplay(fu / days);
+
+  var overviewContext = document.getElementById('overview-context');
+  if (overviewContext) {
+    if (currentFY === '26' && isYTD()) {
+      overviewContext.textContent = 'Call volume peaked in March 2026 and eased for four straight months through June, the close of the fiscal year. The referral mix shifted markedly over the year: self-referrals drove much of the mid-year growth, peaking at 108 in March, but fell to 16 by June — while calls from the Homeless Concern Line climbed for most of the year, reaching a high of 100 in May before easing slightly to 77 in June, ending the year as the single largest referral source. Housing and basic needs remain the top presenting issues.';
+    } else if (currentFY === '25' && isYTD()) {
+      overviewContext.textContent = 'FY 2025 data reflects a complete fiscal year (July 2024–June 2025). Basic needs and housing were the leading presenting issues, with Sycamores outreach as the dominant referral source that year.';
+    } else if (currentFY === '27' && isYTD()) {
+      overviewContext.textContent = 'FY 2027 is just underway, with July 2026 the only month reported so far — ' + fmt(eng) + ' service calls, with housing the leading presenting issue and the Homeless Concern Line the leading referral source.';
+    } else {
+      overviewContext.textContent = buildPeriodActivityNarrative();
+    }
+  }
 
   // Activity cards — parallel, not sequential
   const flowEl = document.getElementById('flow-cards');
@@ -1603,6 +2016,9 @@ function renderOverview() {
       {data:mFU, color:B2, fill:'rgba(91,155,213,0.07)'}
     ], {axisMax: niceAxisMax([...mEng, ...mFU])});
   }
+  renderChartDataTable('c-trend-dt', 'Calls responded to and follow-up check-ins by month',
+    ['Month', 'Calls responded to', 'Follow-up check-ins'],
+    mLabels.map((lbl, i) => [lbl, fmt(mEng[i]), fmt(mFU[i])]));
 
   const presItems = [
     {label:'Basic needs', val:periodSum('presBasicNeeds'), color:B1},
@@ -1612,7 +2028,7 @@ function renderOverview() {
     {label:'Substance use', val:periodSum('presSubUse'), color:B3},
     {label:'Crisis intervention', val:periodSum('presCrisis'), color:B3},
   ];
-  if (currentFY === '26') {
+  if (currentFY !== '25') {
     presItems.push({label:'Suicide risk / danger to self', val:periodSum('presSuicideRisk'), color:B4});
     presItems.push({label:'Danger to others', val:periodSum('presDangerOthers'), color:B4});
   }
@@ -1631,7 +2047,7 @@ function renderOverview() {
     {label:'Fire / EMS', val:periodSum('refFireEMS'), color:B3},
     {label:'Other', val:periodSum('refOther'), color:B3},
   ];
-  if (currentFY === '26') {
+  if (currentFY !== '25') {
     refItems.push({label:'DMH ACCESS/PMRT', val:periodSum('refDMH'), color:B4});
     refItems.push({label:'Concerned community member', val:periodSum('refConcernedCommunity'), color:B4});
     refItems.push({label:'Library', val:periodSum('refLibrary'), color:B4});
@@ -1646,6 +2062,9 @@ function renderDemographics() {
   // Any quarter or single-month filter uses periodSum of the monthly series instead,
   // same as FY25 (which never had a true-unduplicated FYTD figure to begin with).
   const useDemoFYTD = currentFY === '26' && isYTD();
+
+  var demographicsContext = document.getElementById('demographics-context');
+  if (demographicsContext) demographicsContext.textContent = buildDemographicsNarrative();
 
   const ageVals = useDemoFYTD
     ? ['ageU17','age1834','age3549','age5064','age6579','age80p','ageDTS'].map(k=>D_demo[k])
@@ -1687,15 +2106,32 @@ function renderDemographics() {
     ageVals,
     [B4,B1,B1,B1,B2,B3,B4], {axisMax: niceAxisMax(ageVals), showPct: true, pctBase: pctBase, sumTo100: true}
   );
+  (function() {
+    var labels = ['0–17','18–34','35–49','50–64','65–79','80+','Decline to state'];
+    var pcts = roundedPercentages(ageVals, pctBase);
+    renderChartDataTable('c-age-dt', 'People served by age group', ['Age group', 'Count', 'Share'],
+      labels.map((lbl,i) => [lbl, fmt(ageVals[i]), pcts[i] + '%']));
+  })();
 
   drawBar('c-race',
     ['White','Black / AA','Hispanic /\nLatino','DTS','Other /\nMulti','Asian / PI'],
     raceVals,
     [B1,B1,B1,B3,B2,B4], {leftPad:44, axisMax: niceAxisMax(raceVals), showPct: true, pctBase: pctBase, sumTo100: true}
   );
+  (function() {
+    var labels = ['White','Black / African American','Hispanic / Latino','Decline to state','Other / Multiracial','Asian / Pacific Islander'];
+    var pcts = roundedPercentages(raceVals, pctBase);
+    renderChartDataTable('c-race-dt', 'People served by race / ethnicity', ['Race / ethnicity', 'Count', 'Share'],
+      labels.map((lbl,i) => [lbl, fmt(raceVals[i]), pcts[i] + '%']));
+  })();
 
   drawDonut('c-gender',['Male','Female','Decline to state'],[gMale,gFemale,gDTS],[B1,B2,B4]);
   attachDonutTooltips('c-gender',['Male','Female','Decline to state'],[gMale,gFemale,gDTS]);
+  (function() {
+    var pcts = roundedPercentages([gMale,gFemale,gDTS], gMale+gFemale+gDTS);
+    renderChartDataTable('c-gender-dt', 'People served by gender', ['Gender', 'Count', 'Share'],
+      [['Male', fmt(gMale), pcts[0]+'%'], ['Female', fmt(gFemale), pcts[1]+'%'], ['Decline to state', fmt(gDTS), pcts[2]+'%']]);
+  })();
 
   drawDonut('c-housing-donut',
     ['Unhoused','Housed','Unknown'],
@@ -1706,6 +2142,11 @@ function renderDemographics() {
     ['Unhoused','Housed','Unknown'],
     [unhoused, housed, dts]
   );
+  (function() {
+    var pcts = roundedPercentages([unhoused,housed,dts], unhoused+housed+dts);
+    renderChartDataTable('c-housing-donut-dt', 'People served by housing status', ['Housing status', 'Count', 'Share'],
+      [['Unhoused', fmt(unhoused), pcts[0]+'%'], ['Housed', fmt(housed), pcts[1]+'%'], ['Unknown', fmt(dts), pcts[2]+'%']]);
+  })();
 
   const mLabels  = periodMonthLabels();
   const mHoused  = periodMonthData('housingHoused');
@@ -1723,27 +2164,39 @@ function renderDemographics() {
     ], {axisMax: housingAxisMax});
     attachLineTooltips('c-housing', mLabels, [{label:'Unhoused',data:mUnhoused},{label:'Housed',data:mHoused}]);
   }
+  renderChartDataTable('c-housing-dt', 'Housing status of contacts by month', ['Month', 'Unhoused', 'Housed'],
+    mLabels.map((lbl, i) => [lbl, fmt(mUnhoused[i]), fmt(mHoused[i])]));
 }
 
 function renderCalls() {
   const idx = monthsInPeriod();
+
+  var callsContext = document.getElementById('calls-context');
+  if (callsContext) callsContext.textContent = buildCallsPatternNarrative();
 
   const dowKeys=['dowSun','dowMon','dowTue','dowWed','dowThu','dowFri','dowSat'];
   const dowVals = dowKeys.map(k=>periodSum(k));
   const maxDow = Math.max(...dowVals);
   const dowColors = dowVals.map(v => v===maxDow?B1:B3);
   drawBar('c-dow',['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], dowVals, dowColors, {axisMax: niceAxisMax(dowVals)});
+  (function() {
+    var labels = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    renderChartDataTable('c-dow-dt', 'Calls by day of week', ['Day', 'Calls'],
+      labels.map((lbl,i) => [lbl, fmt(dowVals[i])]));
+  })();
 
   const todLabels=['12–2a','2–4a','4–6a','6–8a','8–10a','10a–12p','12–2p','2–4p','4–6p','6–8p','8–10p','10p–12a'];
   const todVals = D.tod.map(row => sum(row,idx));
   const maxTod = Math.max(...todVals);
   const todColors = todVals.map(v=>v===maxTod?B1:v>maxTod*0.7?B2:B3);
   drawBar('c-tod', todLabels, todVals, todColors, {rotateLabels:true, maxBarW:32, axisMax: niceAxisMax(todVals)});
+  renderChartDataTable('c-tod-dt', 'Calls by time of day', ['Time window', 'Calls'],
+    todLabels.map((lbl,i) => [lbl, fmt(todVals[i])]));
 
   const locLabels=['Public space','Telephone','Sheriff station','Private residence','Business','Other'];
   const locKeysBase=['locPublic','locTelephone','locSheriff','locPrivRes','locBusiness','locOther'];
   const locColorsBase=[B1,B2,B3,B4,B3,B4];
-  if (currentFY === '26') {
+  if (currentFY !== '25') {
     locLabels.push('Emergency Dept.', 'Holloway Interim Housing');
     locKeysBase.push('locED','locHolloway');
     locColorsBase.push(B2, B1);
@@ -1823,15 +2276,16 @@ function renderTransportDest() {
   const container = document.getElementById('bars-transport-dest');
   const note = document.getElementById('transport-dest-note');
   if (!container) return;
-  if (currentFY !== '26') {
+  const destSource = currentFY === '26' ? TRANSPORT_DEST_26 : currentFY === '27' ? TRANSPORT_DEST_27 : null;
+  if (!destSource) {
     container.innerHTML = '<div class="bar-empty-state">Destination tracking not available for FY 2025 in this data set.</div>';
-    if (note) note.textContent = 'Only available for FY 2026 in this data set.';
+    if (note) note.textContent = 'Not available for FY 2025 in this data set.';
     return;
   }
   const idx = monthsInPeriod();
   const counts = {};
   idx.forEach(i => {
-    (TRANSPORT_DEST_26[i] || []).forEach(place => {
+    (destSource[i] || []).forEach(place => {
       const key = place.trim();
       if (!key) return;
       counts[key] = (counts[key] || 0) + 1;
@@ -1860,11 +2314,17 @@ function renderOutcomes() {
   var outcomesPeriodText = periodLabel();
   if (outcomesHead) outcomesHead.textContent = 'Outcomes activity — ' + outcomesPeriodText;
 
+  const totalEngForDiversion = periodSum('engagements') || 1;
+  const escalated = periodSum('frLASD') + periodSum('frLACFD');
+  const diversionPct = Math.round((1 - escalated/totalEngForDiversion) * 100);
+
+  var outcomesContext = document.getElementById('outcomes-context');
+  if (outcomesContext) {
+    outcomesContext.textContent = 'Most engagements resulted in service connections. About ' + diversionPct + '% were resolved without the Care Team needing to request law enforcement or Fire/EMS support.';
+  }
+
   var outcomesEl = document.getElementById('kpi-outcomes-top');
   if (outcomesEl) {
-    const totalEng = periodSum('engagements') || 1;
-    const escalated = periodSum('frLASD') + periodSum('frLACFD');
-    const diversionPct = Math.round((1 - escalated/totalEng) * 100);
     outcomesEl.innerHTML =
       '<div class="flow-card">' +
         '<div class="flow-card-label">On-scene services</div>' +
@@ -1926,14 +2386,14 @@ function renderOutcomes() {
   const lacfdH = periodSum('frLACFDHoused');
   const lacfdU = periodSum('frLACFDUnhoused');
   const lacfdD = Math.max(0, lacfd - lacfdH - lacfdU);
-  const fitReq = currentFY === '26' ? periodSum('frFITRequests') : null;
+  const fitReq = currentFY !== '25' ? periodSum('frFITRequests') : null;
   const holds = periodSum('frHoldsApplied');
   const voided = periodSum('frHoldsVoided');
 
   var tbl = document.getElementById('tbl-fr');
   if (tbl) {
     tbl.innerHTML = ''
-      + '<tr class="row-group"><td colspan="2">Response support requested — FY ' + (currentFY === '25' ? '2025' : '2026') + '</td></tr>'
+      + '<tr class="row-group"><td colspan="2">Response support requested — FY ' + (currentFY === '25' ? '2025' : currentFY === '26' ? '2026' : '2027') + '</td></tr>'
       + '<tr class="row-group"><td colspan="2">Sheriff (LASD)</td></tr>'
       + '<tr><td>Times Care Team requested LASD support</td><td>' + lasd + '</td></tr>'
       + '<tr class="row-indent"><td>Contacts who were unhoused</td><td>' + lasdU + '</td></tr>'
@@ -1954,6 +2414,8 @@ function renderOutcomes() {
   const mRepeats = periodMonthData('repeats');
   const repeatAxisMax = Math.max(10, Math.ceil(Math.max.apply(null, mRepeats.concat([0])) / 5) * 5);
   drawBar('c-repeat', mLabels, mRepeats, B1, {axisMax: repeatAxisMax, rotateLabels: mLabels.length > 6});
+  renderChartDataTable('c-repeat-dt', 'Repeat contacts by month', ['Month', 'Repeat contacts'],
+    mLabels.map((lbl, i) => [lbl, fmt(mRepeats[i])]));
 
   var repeatCanvas = document.getElementById('c-repeat');
   if (repeatCanvas && repeatCanvas.closest('.chart-card')) {
@@ -1971,18 +2433,18 @@ function renderOutcomes() {
 // Defer first render so Chrome has completed layout before we measure widths
 function init() {
 
-  // Backup FY26 data for year toggle
+  // Backup FY27 data for year toggle (D26/D25 are already fixed literals)
   Object.keys(D).forEach(function(k) {
     if (Array.isArray(D[k]) && Array.isArray(D[k][0])) {
-      D26[k] = D[k].map(function(r){return r.slice();});
+      D27[k] = D[k].map(function(r){return r.slice();});
     } else if (Array.isArray(D[k])) {
-      D26[k] = D[k].slice();
+      D27[k] = D[k].slice();
     } else {
-      D26[k] = D[k];
+      D27[k] = D[k];
     }
   });
-  FY_CONFIG['26'].data = D26;
-  updateFYNote('26');
+  FY_CONFIG['27'].data = D27;
+  updateFYNote('27');
   renderPeriodControls();
   renderCurrentPage();
   initExpandableKPIs();
@@ -1997,6 +2459,19 @@ function init() {
       destroyCharts();
       renderCurrentPage();
     }, 150);
+  });
+
+  // The About This Data section is a native <details> element. CSS alone can't reliably force
+  // its content to render on paper when closed (browsers hide non-summary <details> content
+  // through an internal mechanism, not simple display:none), so toggle the open attribute
+  // itself for the print window and restore whatever the user had afterward.
+  var aboutDataEl = document.getElementById('about-data');
+  var wasOpenBeforePrint = false;
+  window.addEventListener('beforeprint', function() {
+    if (aboutDataEl) { wasOpenBeforePrint = aboutDataEl.open; aboutDataEl.open = true; }
+  });
+  window.addEventListener('afterprint', function() {
+    if (aboutDataEl) aboutDataEl.open = wasOpenBeforePrint;
   });
 }
 
@@ -2038,23 +2513,35 @@ function updateFYNote(fy) {
   if (fy === '26') {
     note.textContent = 'FY 2026 data covers the complete fiscal year, July 2025 through June 2026.';
     noteWrap.classList.add('visible');
+  } else if (fy === '27') {
+    note.textContent = 'FY 2027 data covers July 2026 to date — a partial fiscal year. Totals reflect 1 of 12 months.';
+    noteWrap.classList.add('visible');
   } else {
     note.textContent = '';
     noteWrap.classList.remove('visible');
   }
   if (footer) footer.innerHTML = '<div></div>';
+
+  var periodEl = document.getElementById('about-data-period');
+  if (periodEl) {
+    var cfg = FY_CONFIG[fy];
+    var complete = (fy === '25' || fy === '26');
+    periodEl.textContent = 'FY ' + (fy === '25' ? '2025' : fy === '26' ? '2026' : '2027') +
+      ': ' + cfg.dateRange + (complete ? ' (complete fiscal year).' : ' (partial fiscal year, to date).');
+  }
 }
 
 // ── FY SWITCHER ──
-// FY26 response/duration/follow-up/transport averages below are pulled directly from
+// FY response/duration/follow-up/transport averages below are pulled directly from
 // the source workbook's own "Fiscal Year-to-Date" column (Summarized Data tab), not
 // computed by averaging the monthly averages together — those two methods can differ
 // meaningfully, and the FYTD column is what the City's official monthly report cites.
-// Verified 2026-08-05 against WeHo_Care_Monthly_Report_June_2026.xlsx — FY26 is now the
-// complete 12-month fiscal year (Jul 2025–Jun 2026). The transport-time discrepancy flagged
-// in prior updates (source FYTD column vs. the City's official monthly report) remains an
-// open, unresolved item — the workbook now gives 34 min; no official-report figure to compare
-// against was available this cycle.
+// FY26 verified 2026-08-05 against WeHo_Care_Monthly_Report_June_2026.xlsx (now closed,
+// complete 12-month year). FY27 verified 2026-09-23 against
+// WeHo_Care_Monthly_Report_July_2026.xlsx (1 month so far). The transport-time discrepancy
+// flagged in prior updates (source FYTD column vs. the City's official monthly report)
+// remains an open, unresolved item — no official-report figure to compare against was
+// available this cycle either.
 const FY_CONFIG = {
   '25': {
     avgResponse: 8.3, avgDuration: 23, avgFollowup: 21.1, avgTransport: 46,
@@ -2070,7 +2557,15 @@ const FY_CONFIG = {
     months: ["Jul 25", "Aug 25", "Sep 25", "Oct 25", "Nov 25", "Dec 25", "Jan 26", "Feb 26", "Mar 26", "Apr 26", "May 26", "Jun 26"],
     qidx: {"ytd": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "q1": [0, 1, 2], "q2": [3, 4, 5], "q3": [6, 7, 8], "q4": [9, 10, 11]},
     qlabels: {"ytd": "Jul 2025 \u2013 Jun 2026", "q1": "Q1: Jul \u2013 Sep 2025", "q2": "Q2: Oct \u2013 Dec 2025", "q3": "Q3: Jan \u2013 Mar 2026", "q4": "Q4: Apr \u2013 Jun 2026"},
-    data: null // populated from D26 backup in init
+    data: D26
+  },
+  '27': {
+    avgResponse: 19, avgDuration: 51, avgFollowup: 15, avgTransport: 18,
+    dateRange: 'Jul 2026',
+    months: ["Jul 26"],
+    qidx: {"ytd": [0], "q1": [0]},
+    qlabels: {"ytd": "Jul 2026", "q1": "Q1 (partial): Jul 2026"},
+    data: null // populated from D27 backup in init
   }
 };
 
@@ -2098,6 +2593,20 @@ const CALL_TIME_CONFIG = {
     responseMin: 0, responseMax: 810,
     callMin: 1, callMax: 1420,
     queueMin: 0, queueMax: 1435
+  },
+  '27': {
+    responseAvg: 19,
+    responseMedian: 14,
+    callAvg: 51,
+    callMedian: 8,
+    queueAvg: 5,
+    queueMedian: 3,
+    initialEngagementAvg: 15,
+    dateRange: 'July 2026',
+    // Verified 2026-09-23 against WeHo_Care_Monthly_Report_July_2026.xlsx — July only so far.
+    responseMin: 0, responseMax: 121,
+    callMin: 1, callMax: 1435,
+    queueMin: 0, queueMax: 114
   }
 };
 
@@ -2106,14 +2615,14 @@ function switchFY(fy) {
   var cfg = FY_CONFIG[fy];
   updateFYNote(fy);
   // Update button styles
-  ['btn-fy25','btn-fy26'].forEach(function(id) {
+  ['btn-fy25','btn-fy26','btn-fy27'].forEach(function(id) {
     var btn = document.getElementById(id);
     if (!btn) return;
     var active = (id === 'btn-fy'+fy);
     btn.classList.toggle('active', active);
   });
   // Swap data
-  var src = fy === '25' ? D25 : D26;
+  var src = fy === '25' ? D25 : fy === '26' ? D26 : D27;
   Object.keys(src).forEach(function(k) {
     if (Array.isArray(src[k]) && Array.isArray(src[k][0])) {
       D[k] = src[k].map(function(r){return r.slice();});
