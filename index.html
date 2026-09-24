@@ -199,6 +199,7 @@
   .about-data-body ul { margin: 4px 0 0; padding-left: 18px; }
   .about-data-body li { margin-bottom: 4px; }
   .about-data-updated { font-size: 11.5px; color: var(--muted); margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+  .about-data-updated > div + div { margin-top: 3px; }
 
   /* ── CHART DATA TABLE (accessible text equivalent for canvas charts) ── */
   .sr-only {
@@ -649,14 +650,8 @@
 
   <div class="chart-card full" id="card-timerange" style="margin-bottom:12px;">
     <div class="chart-title">Time spent: full range</div>
-    <div class="chart-note" id="timerange-note">Minimum, median/average, and maximum per call — full FYTD. A high maximum reflects a small number of atypical calls, not the typical experience.</div>
+    <div class="chart-note" id="timerange-note">Median and average per call, scaled to the typical range, for the selected fiscal year.</div>
     <div id="timerange-body"></div>
-  </div>
-
-  <div class="chart-card full" id="card-transport-dest">
-    <div class="chart-title">Transport destinations</div>
-    <div class="chart-note" id="transport-dest-note">Notable destinations mentioned in Sycamores' monthly reports for the selected period. This reflects places named in the narrative, not a complete per-transport log — some entries may refer to the same location under different names as reported.</div>
-    <div id="bars-transport-dest"></div>
   </div>
 
 </div>
@@ -712,11 +707,13 @@
       <li>Operational measures (calls, referrals, presenting issues, services, response times) are aggregated from monthly program reporting.</li>
       <li>Some measures represent contacts or encounters, not unduplicated individuals — one person can generate more than one contact, including within the same month.</li>
       <li>Presenting issues and services may include multiple categories for a single contact, so their shares can add to more than 100%.</li>
-      <li>The unduplicated demographic profile (Demographics page) is a true fiscal-year-to-date figure only for the year-to-date view. Filtering to a quarter or a single month instead sums each month's own unduplicated count, which may include the same individual more than once if they were served in multiple months within that range.</li>
-      <li>Transport destination information reflects locations named in monthly narrative reporting, not a complete transport-by-transport dataset.</li>
+      <li id="about-data-demo-note"></li>
     </ul>
 
-    <div class="about-data-updated">Data last updated: September 23, 2026</div>
+    <div class="about-data-updated">
+      <div>Dashboard updated: September 23, 2026</div>
+      <div id="about-data-latest-period"></div>
+    </div>
   </div>
 </details>
 
@@ -2228,7 +2225,6 @@ function renderCalls() {
     <tr><td>Wait time in queue — median</td><td>${callTime.queueMedian} min</td></tr>`;
 
   renderTimeRange(callTime);
-  renderTransportDest();
 }
 
 function renderTimeRange(callTime) {
@@ -2240,15 +2236,14 @@ function renderTimeRange(callTime) {
     if (note) note.textContent = 'Only available for FY 2026 in this data set.';
     return;
   }
-  if (note) note.textContent = 'Median and average per call, scaled to the typical range — full FYTD (' + callTime.dateRange + '). Maximums observed are shown separately: a small number of atypical calls run far longer and would make a true-to-scale bar unreadable for everything else.';
+  if (note) note.textContent = 'Median and average per call, scaled to the typical range — full FYTD (' + callTime.dateRange + ').';
   const metrics = [
     {label:'Dispatch → arrival', sub:'Response time', min:callTime.responseMin, mid:callTime.responseMedian, avg:callTime.responseAvg, max:callTime.responseMax},
     {label:'Arrival → close', sub:'Call duration', min:callTime.callMin, mid:callTime.callMedian, avg:callTime.callAvg, max:callTime.callMax},
     {label:'Dispatch queue wait', sub:'Only when team was already on a call', min:callTime.queueMin, mid:callTime.queueMedian, avg:callTime.queueAvg, max:callTime.queueMax},
   ];
   body.innerHTML = metrics.map(m => {
-    // Track is scaled to the typical range (not the true max) so median/average stay readable;
-    // the true max is shown as a separate callout rather than positioned to scale.
+    // Track is scaled to the typical range (not the true max) so median/average stay readable.
     const displayMax = Math.max(m.avg, m.mid) * 2.4;
     const midPct = Math.min(96, Math.max(4, (m.mid / displayMax) * 100));
     const avgPct = Math.min(96, Math.max(4, (m.avg / displayMax) * 100));
@@ -2266,7 +2261,6 @@ function renderTimeRange(callTime) {
       <div class="range-legend">
         <span><span class="range-legend-dot" style="background:var(--blue3);"></span>Average ${m.avg} min</span>
         <span><span class="range-legend-dot" style="background:var(--blue);"></span>Median ${m.mid} min</span>
-        <span>Max observed: <strong>${fmt(m.max)} min</strong></span>
       </div>
     </div>`;
   }).join('');
@@ -2529,6 +2523,36 @@ function updateFYNote(fy) {
     periodEl.textContent = 'FY ' + (fy === '25' ? '2025' : fy === '26' ? '2026' : '2027') +
       ': ' + cfg.dateRange + (complete ? ' (complete fiscal year).' : ' (partial fiscal year, to date).');
   }
+
+  var demoNoteEl = document.getElementById('about-data-demo-note');
+  if (demoNoteEl) demoNoteEl.textContent = buildDemoMethodologyNote(fy);
+
+  // "Latest reporting period available" always reflects FY27 (the live, currently-growing
+  // dataset) regardless of which fiscal year the person has toggled to view — switching to
+  // a closed historical year should never make this line look like it went backward.
+  var latestPeriodEl = document.getElementById('about-data-latest-period');
+  if (latestPeriodEl) {
+    var fy27Months = FY_CONFIG['27'].months;
+    latestPeriodEl.textContent = 'Latest reporting period available: ' + fy27Months[fy27Months.length - 1] + '.';
+  }
+}
+
+// Fiscal-year-specific explanation of whether the Demographics page total is a true
+// unduplicated fiscal-year figure or a sum of each month's own unduplicated count.
+// Mirrors the useDemoFYTD gate used on the Demographics page itself (currentFY === '26' &&
+// isYTD()) — if that gate is ever extended to another year (e.g. a verified FY27 FYTD total
+// is added later, the same way FY26's was), extend the branch below to match rather than
+// leaving this note out of sync with what the page actually shows.
+function buildDemoMethodologyNote(fy) {
+  if (fy === '26') {
+    return 'Full-year demographic figures represent ' + fmt(DEMO_TOTAL) + ' unduplicated individuals served during FY 2025–26. For quarter or custom multi-month views, monthly unduplicated counts are summed instead; an individual served in more than one selected month may therefore be counted more than once.';
+  }
+  if (fy === '27' && FY_CONFIG['27'].months.length === 1) {
+    return 'FY 2027 currently includes ' + FY_CONFIG['27'].months[0] + ' reporting only. Demographic figures reflect that single month\u2019s reporting period.';
+  }
+  // FY25 (no verified true fiscal-year-to-date dedup total exists for that year), and FY27
+  // once it grows past its first month without its own verified FYTD override.
+  return 'Demographic figures are based on monthly unduplicated counts aggregated across the selected period. An individual served in more than one month may therefore be represented more than once in a multi-month or full-year view.';
 }
 
 // ── FY SWITCHER ──
